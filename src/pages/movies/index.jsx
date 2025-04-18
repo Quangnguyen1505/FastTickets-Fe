@@ -24,6 +24,7 @@ import {
 function Movies() {
   const dispatch = useDispatch();
   const controller = useMemo(() => new AbortController(), []);
+  const [movieStatus, setMovieStatus] = useState('now-showing')
   const [dataMovies, setDataMovies] = useState([]);
   const [meta, setMeta] = useState({
     totalpage: 1,
@@ -33,10 +34,8 @@ function Movies() {
   });
   const router = useRouter();
   const { query, push } = router;
-  const { search = "", sort, page } = query;
-
+  const { search = "", sort, page, movie_status } = query;  
   const [cat, setCat] = useState([]);
-
   const [isLoading, setLoading] = useState(true);
   const [catLoad, setCatLoad] = useState(true);
 
@@ -48,10 +47,9 @@ function Movies() {
 
   const fetching = async (page = 1, search = "", sort = "") => {
     const params = {
-      limit: 8,
+      limit: 100,
       page,
-      search,
-      sort,
+      movieStatus: movieStatus
     };
     try {
       setLoading(true);
@@ -82,7 +80,13 @@ function Movies() {
   useEffect(() => {
     if (!router.isReady) return;
     fetching(page, search, sort);
-  }, [sort, page, search, router.isReady]);
+  }, [sort, page, search, router.isReady, movieStatus]);
+
+  useEffect(() => {
+    if (movie_status && typeof movie_status === 'string') {
+      setMovieStatus(movie_status);
+    }
+  }, [movie_status]);
 
   useEffect(() => {
     getGenre(controller)
@@ -110,15 +114,32 @@ function Movies() {
         <Header />
         <main className="w-full mt-12 md:mt-[5.5rem] bg-accent py-10">
           <section className="mw-global global-px h-auto">
-            <div className="border-l-4 border-blue-500 pl-4 flex gap-8 justify-between items-center">
-              <h1 className="text-2xl font-bold mb-4 mr-auto">Movies</h1>
-              <div className="flex gap-8">
-                <div className="font-bold text-1xl flex flex-col gap-3">
-                  <p className="translate-y-1">Now Showing</p>
-                  <div className="h-[3px] w-[65%] bg-primary mx-auto rounded-lg" />
-                </div>
-                <div className="text-black text-1xl flex flex-col gap-3">
-                  <p className="translate-y-1">Up Showing</p>
+            <div className="border-l-4 border-blue-500 pl-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex flex-col md:flex-row md:items-center gap-6">
+                <h1 className="text-2xl font-bold">Movies</h1>
+                <div className="flex gap-6 mt-2">
+                  <div
+                    onClick={() => setMovieStatus("now-showing")}
+                    className={`font-bold text-1xl flex flex-col gap-3 cursor-pointer ${
+                      movieStatus === "now-showing" ? "text-primary" : "text-black"
+                    }`}
+                  >
+                    <p className="translate-y-1">Now Showing</p>
+                    {movieStatus === "now-showing" && (
+                      <div className="h-[3px] w-[65%] bg-primary mx-auto rounded-lg" />
+                    )}
+                  </div>
+                  <div
+                    onClick={() => setMovieStatus("upcoming-movies")}
+                    className={`font-bold text-1xl flex flex-col gap-3 cursor-pointer ${
+                      movieStatus === "upcoming-movies" ? "text-primary" : "text-black"
+                    }`}
+                  >
+                    <p className="translate-y-1">Upcomming</p>
+                    {movieStatus === "upcoming-movies" && (
+                      <div className="h-[3px] w-[65%] bg-primary mx-auto rounded-lg" />
+                    )}
+                  </div>
                 </div>
               </div>
               <select
@@ -187,7 +208,7 @@ function Movies() {
               </>
             )}
           </div>
-          <div className="container mx-auto p-5">
+          <div className="container mx-auto p-5 ">
             <div className="grid grid-cols-4 gap-4">
               {dataMovies.map((movie, index) => (
                 <div 

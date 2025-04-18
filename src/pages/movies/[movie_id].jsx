@@ -20,21 +20,26 @@ import {
   getMovieDetails,
 } from '@/utils/https/movies';
 import { getShowTimeByMovieId } from '@/utils/https/showtimes';
+import { getAvailableDates } from '@/utils/https/dates';
 
-function ListDate(props) {
-  // console.log(props);
-  const date = new Date(props.date);
-  const year = date.getFullYear();
-  const mounth = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const formatedDate = `${year}-${mounth}-${day}`;
+function ListDate({ date, isClick, isActive }) {
+  const d = new Date(date);
+  const formatted = `${String(d.getDate()).padStart(2, "0")}/${String(
+    d.getMonth() + 1
+  ).padStart(2, "0")}`;
 
   return (
-    <li onClick={() => props.isClick(formatedDate)}>
-      <a>{formatedDate}</a>
-    </li>
+    <div
+      onClick={() => isClick(date)}
+      className={`px-4 py-2 rounded cursor-pointer ${
+        isActive ? "bg-blue-700 text-white font-semibold" : "text-gray-700"
+      } hover:bg-blue-500 hover:text-white transition`}
+    >
+      {formatted}
+    </div>
   );
 }
+
 
 function MovieDetails() {
   const router = useRouter();
@@ -48,25 +53,30 @@ function MovieDetails() {
 
   const [showtimesData, setShowtimesData] = useState([]);
 
-  const [dataDate, setDataDate] = useState([
-    { open_date: '2025-04-02' },
-    { open_date: '2025-04-03' },
-    { open_date: '2025-04-04' },
-    { open_date: '2025-04-05' },
-  ]);
+  const [dataDate, setDataDate] = useState([]);
 
   useEffect(() => {
-    fetchShowtimes();
-  }, [selectDate]);
-
-  const fetchShowtimes = async () => {
-    const data = await getShowTimeByMovieId(movieId, controller);
-    setShowtimesData(data.data.metadata.filter((showtime) => showtime.show_date === selectDate));
-  };
+    if (!movieId || !selectDate) return;
   
+    const fetchShowtimes = async () => {
+      try {
+        const data = await getShowTimeByMovieId(movieId, controller);
+        const filtered = data.data.metadata.filter(
+          (showtime) => showtime.show_date === selectDate
+        );
+        setShowtimesData(filtered);
+      } catch (error) {
+        console.error("Error fetching showtimes:", error);
+      }
+    };
+  
+    fetchShowtimes();
+  }, [movieId, selectDate]);
 
   // Định nghĩa hàm handleSelectDate để xử lý sự kiện khi người dùng chọn ngày
   const handleSelectDate = (date) => {
+    console.log("data ", date);
+    
     setSelectDate(date); // Cập nhật giá trị selectDate với ngày người dùng đã chọn
   };
 
@@ -76,27 +86,42 @@ function MovieDetails() {
     setSelectedShowtime(showtime); // Cập nhật state để mở seat
   };
 
-  const fetching = async () => {
-    try {
-      const result = await getMovieDetails(movieId, controller);
-      // console.log(result);
-      setDataMovie(result.data.metadata);
-      setIsLoading(false);
-    } catch (error) {
-      router.push("/movies");
-      console.log(error);
-    }
-  };
-
   useEffect(() => {
-    if (!router.isReady) return;
-    fetching();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.isReady]);
-
-  let date = new Date(dataMovie.release_date);
-  let options = { year: "numeric", month: "long", day: "numeric" };
-  let new_date = date.toLocaleDateString("en-US", options);
+    if (!router.isReady || !movieId) return;
+  
+    const fetchInitialData = async () => {
+      try {
+        const [dateRes, movieRes] = await Promise.all([
+          getAvailableDates(),
+          getMovieDetails(movieId, controller),
+        ]);
+        
+        const today = new Date().toISOString().split("T")[0];
+  
+        setDataDate(dateRes.data);
+        setDataMovie(movieRes.data.metadata);
+        setIsLoading(false);
+  
+        // Nếu ngày hôm nay có trong danh sách thì set
+        const todayInDates = dateRes.data.find(d => {
+          return new Date(d.open_date).toISOString().split("T")[0] === today;
+        });
+  
+        if (todayInDates) {
+          setSelectDate(today);
+        } else {
+          setSelectDate(dateRes.data[0]?.open_date); // fallback
+        }
+  
+      } catch (error) {
+        console.error("Init error:", error);
+        router.push("/movies");
+      }
+    };
+  
+    fetchInitialData();
+  }, [router.isReady, movieId]);
+  
   
   return (
     <Layout title={"Movie Details"}>
@@ -236,50 +261,56 @@ function MovieDetails() {
                     <div className="w-full flex flex-col gap-5">
                       {/* SET DATE */}
                       <div className="dropdown z-0">
-                        <label
+                        {/* <label
                           tabIndex={0}
                           className="btn btn-outline btn-primary w-[10rem] md:w-[16.375rem] rounded"
                         >
                           {selectDate === "" ? "Select Date" : selectDate}
-                        </label>
-                        <ul
-                          tabIndex={0}
-                          className="dropdown-content menu menu-compact p-2 shadow bg-base-100 rounded-lg w-full"
-                        >
-                          {dataDate.map((date, idx) => (
-                            <ListDate
-                              isClick={handleSelectDate}
-                              key={idx}
-                              date={date.open_date}
-                            />
-                          ))}
-                        </ul>
+                        </label> */}
+                        <div className="border border-blue-500 rounded-md p-2 flex justify-center gap-4">
+                          {dataDate.map((dateObj, idx) => {
+                            const dateStr = new Date(dateObj.open_date)
+                              .toISOString()
+                              .split("T")[0];
+                            return (
+                              <ListDate
+                                key={idx}
+                                date={dateObj.open_date}
+                                isClick={handleSelectDate}
+                                isActive={dateStr === selectDate}
+                              />
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="justify-between gap-y-5 w-full mt-16">
-                  <h1 className="text-2xl font-bold">Fast Sticket</h1>
+                  <h1 className="text-2xl font-bold">Fast Ticket</h1>
                   <div className="flex flex-row">
-                    {showtimesData.map((showtime, idx) => (
-                      <div key={idx} className="card p-5">
-                        {/* <p>{showtime.Room.room_name}</p> */}
-                        <button 
-                          className='btn btn-primary'
-                          onClick={() => handleClick(showtime)}
-                        >{showtime.start_time}</button>
-                        {/* <p>
-                          {showtime.start_time} - {showtime.end_time}
-                        </p> */}
-                        {/* <p>{showtime.show_date}</p> */}
+                    {showtimesData.length > 0 ? (
+                      showtimesData.map((showtime, idx) => (
+                        <div key={idx} className="card p-5">
+                          <button 
+                            className='btn btn-primary'
+                            onClick={() => handleClick(showtime)}
+                          >
+                            {showtime.start_time}
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-gray-600 font-medium italic">
+                        Currently, there are no showtimes available for this date.
                       </div>
-                    ))}
+                    )}
                   </div>
                   {selectedShowtime && (
                     <div className="mt-5">
                       <h2 className="text-lg font-bold">Chọn Ghế Cho Suất Chiếu: {selectedShowtime.start_time}</h2>
-                      <Seat room_id={selectedShowtime.Room?.id}/>
+                      <Seat room_id={selectedShowtime.Room?.id} show_time_id={selectedShowtime.id}/>
                     </div>
                   )}
                 </div>

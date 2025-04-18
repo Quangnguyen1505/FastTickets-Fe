@@ -12,10 +12,17 @@ import { usersAction } from '@/redux/slice/users';
 
 function Header() {
   const navList = [
-    { title: "Movies", url: "/movies" },
-    { title: "Category", url: "/" },
-    { title: "Buy Ticket", url: "/" },
+    { 
+      title: "Movies", 
+      url: "/movies",
+      subMenu: [
+        { title: "Now Showing", url: "/movies?movie_status=now-showing" },
+        { title: "Upcoming", url: "/movies?movie_status=upcoming-movies" }
+      ]
+    },
+    { title: "Buy Ticket", url: "/buy-tickets" },
     { title: "Event", url: "/" },
+    { title: "Contact", url: "/contact" },
   ];
   const Languages = [
     {
@@ -106,25 +113,46 @@ function Header() {
               />
             </Link>
             <nav className="hidden lg:flex gap-7 lg:gap-8 xl:gap-12 2xl:gap-14 list-none">
-              {navList.map(({ title, url }) => (
-                <li key={title}>
-                  <Link href={url} className="font-medium flex items-center gap-2">
-                    <p>{title}</p>
-                    {title === "Category" && (
-                      <svg
-                        width="10"
-                        height="6"
-                        viewBox="0 0 10 6"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+              {navList.map((item) => (
+                <li key={item.title}>
+                  {item.subMenu ? (
+                    <div className="dropdown dropdown-hover">
+                      <label
+                        tabIndex={0}
+                        className="font-medium flex items-center gap-2 cursor-pointer"
                       >
-                        <path
-                          d="M8.96718 0.982517C8.89779 0.912989 8.81538 0.857828 8.72465 0.820192C8.63392 0.782556 8.53665 0.763184 8.43843 0.763184C8.3402 0.763184 8.24294 0.782556 8.15221 0.820192C8.06148 0.857828 7.97906 0.912989 7.90968 0.982517L4.99968 3.89252L2.08968 0.982516C1.94945 0.842283 1.75925 0.763501 1.56093 0.763501C1.36261 0.763501 1.17241 0.842283 1.03218 0.982516C0.891945 1.12275 0.813164 1.31295 0.813164 1.51127C0.813164 1.70959 0.891945 1.89978 1.03218 2.04002L4.47468 5.48252C4.54406 5.55204 4.62648 5.6072 4.71721 5.64484C4.80794 5.68248 4.9052 5.70185 5.00343 5.70185C5.10165 5.70185 5.19892 5.68248 5.28965 5.64484C5.38038 5.6072 5.46279 5.55204 5.53218 5.48252L8.97468 2.04002C9.25968 1.75502 9.25968 1.27502 8.96718 0.982517Z"
-                          fill="#14142B"
-                        />
-                      </svg>
-                    )}
-                  </Link>
+                        <Link href={item.url} className="flex items-center gap-2">
+                          {item.title}
+                          <svg
+                            width="10"
+                            height="6"
+                            viewBox="0 0 10 6"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M8.96718 0.982517C8.89779 0.912989 8.81538 0.857828 8.72465 0.820192C8.63392 0.782556 8.53665 0.763184 8.43843 0.763184C8.3402 0.763184 8.24294 0.782556 8.15221 0.820192C8.06148 0.857828 7.97906 0.912989 7.90968 0.982517L4.99968 3.89252L2.08968 0.982516C1.94945 0.842283 1.75925 0.763501 1.56093 0.763501C1.36261 0.763501 1.17241 0.842283 1.03218 0.982516C0.891945 1.12275 0.813164 1.31295 0.813164 1.51127C0.813164 1.70959 0.891945 1.89978 1.03218 2.04002L4.47468 5.48252C4.54406 5.55204 4.62648 5.6072 4.71721 5.64484C4.80794 5.68248 4.9052 5.70185 5.00343 5.70185C5.10165 5.70185 5.19892 5.68248 5.28965 5.64484C5.38038 5.6072 5.46279 5.55204 5.53218 5.48252L8.97468 2.04002C9.25968 1.75502 9.25968 1.27502 8.96718 0.982517Z"
+                              fill="#14142B"
+                            />
+                          </svg>
+                        </Link>
+                      </label>
+                      <ul
+                        tabIndex={0}
+                        className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
+                      >
+                        {item.subMenu.map((subItem) => (
+                          <li key={subItem.title}>
+                            <Link href={subItem.url}>{subItem.title}</Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <Link href={item.url} className="font-medium flex items-center gap-2">
+                      <p>{item.title}</p>
+                    </Link>
+                  )}
                 </li>
               ))}
             </nav>

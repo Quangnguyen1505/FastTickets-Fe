@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -19,8 +19,9 @@ import Header from '@/components/Header';
 import Layout from '@/components/Layout';
 import { orderAction } from '@/redux/slice/order';
 import { getMovies } from '@/utils/https/movies';
+import { getEvents } from '@/utils/https/events';
 
-function Home({ movies, error }) {
+function Home({ movies, events, error }) {
   const dispatch = useDispatch();
   const router = useRouter();
   const handleNavigate = (url) => router.push(url);
@@ -30,36 +31,26 @@ function Home({ movies, error }) {
     handleNavigate(`/movies/${id}`);
   };
 
-  const reviews = [
-    {
-      title: "[Review] Âm Dương Lộ: Tôn Vinh Tài Xế Xe Cứu Thương Thông Qua Truyền Thuyết Đô Thị",
-      image: "/images/avatar-2-movie.jpg",
-      likes: 280,
-      featured: true,
-    },
-    {
-      title: "[Review] Snow White: Disney Viết Lại Cổ Tích Theo Cách Hợp Lí Hơn?",
-      image: "/images/avatar-2-movie.jpg",
-      likes: 306,
-      featured: false,
-    },
-    {
-      title: "[Review] Mickey 17: Châm Biếm Trò Hề Của Tư Bản?",
-      image: "/images/avatar-2-movie.jpg",
-      likes: 318,
-      featured: false,
-    },
-    {
-      title: "[Review] Hitman 2: Sát Thủ Sang Kwon Sang Woo Tấu Hài Cùng Lee Yi Kyung",
-      image: "/images/avatar-2-movie.jpg",
-      likes: 189,
-      featured: false,
-    },
-  ];
-
-
   const [email, setEmail] = useState("");
   const [activeIndex, setActiveIndex] = useState(0)
+  const [movieStatus, setMovieStatus] = useState("now-showing");
+  const [movieList, setMovieList] = useState(movies || []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const fetchMovies = async () => {
+      try {
+        const res = await getMovies({ limit: 10, page: 1, movieStatus }, controller);
+        setMovieList(res.data.metadata || []);
+      } catch (err) {
+        console.error("Failed to fetch movies", err.message);
+      }
+    };
+  
+    fetchMovies();
+  
+    return () => controller.abort();
+  }, [movieStatus]);
   
   const submitHandler = (e) => {
     e.preventDefault();
@@ -127,12 +118,27 @@ function Home({ movies, error }) {
             <div className="flex items-center gap-8 border-l-4 border-blue-500 pl-4">
               <p className="font-bold text-2xl">Movies</p>
               <div className="flex gap-8">
-                <div className="font-bold text-1xl flex flex-col gap-3">
+                <div
+                  onClick={() => setMovieStatus("now-showing")}
+                  className={`font-bold text-1xl flex flex-col gap-3 cursor-pointer ${
+                    movieStatus === "now-showing" ? "text-primary" : "text-black"
+                  }`}
+                >
                   <p className="translate-y-1">Now Showing</p>
-                  <div className="h-[3px] w-[65%] bg-primary mx-auto rounded-lg" />
+                  {movieStatus === "now-showing" && (
+                    <div className="h-[3px] w-[65%] bg-primary mx-auto rounded-lg" />
+                  )}
                 </div>
-                <div className="text-black text-1xl flex flex-col gap-3">
-                  <p className="translate-y-1">Up Showing</p>
+                <div
+                  onClick={() => setMovieStatus("upcoming-movies")}
+                  className={`font-bold text-1xl flex flex-col gap-3 cursor-pointer ${
+                    movieStatus === "upcoming-movies" ? "text-primary" : "text-black"
+                  }`}
+                >
+                  <p className="translate-y-1">Upcomming</p>
+                  {movieStatus === "upcoming-movies" && (
+                    <div className="h-[3px] w-[65%] bg-primary mx-auto rounded-lg" />
+                  )}
                 </div>
               </div>
             </div>
@@ -165,7 +171,7 @@ function Home({ movies, error }) {
               className="mySwiper"
               onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
             >
-              {movies && movies.map((movie, index) => (
+              {movieList && movieList.map((movie, index) => (
                 <SwiperSlide 
                   key={index} 
                   className="max-w-[300px] aspect-[3/4] transition-transform duration-300"
@@ -195,13 +201,13 @@ function Home({ movies, error }) {
           <div className="mt-12 w-full max-w-2xl px-4 text-center">
             <div className="animate-fade-in">
               <h2 className="text-3xl font-bold text-white mb-4">
-                {movies[activeIndex]?.movie_title}
+                {movieList[activeIndex]?.movie_title || 'please, waiting...'}
               </h2>
               <div className="text-orange-400 text-lg mb-2">
-                {movies[activeIndex]?.movie_director}
+                {movieList[activeIndex]?.movie_director || 'please, waiting...'}
               </div>
               <p className="text-gray-300 text-base leading-relaxed line-clamp-3">
-                {movies[activeIndex]?.movie_content}
+                {movieList[activeIndex]?.movie_content || 'please, waiting...'}
               </p>
             </div>
           </div>
@@ -251,28 +257,48 @@ function Home({ movies, error }) {
         </div>
         <div className="max-w-6xl mx-auto p-4">
           <div className="grid md:grid-cols-3 gap-4">
-            {reviews.filter(review => review.featured).map((review, index) => (
-              <div key={index} className="md:col-span-2">
-                <Image src={review.image} alt={review.title} width={730} height={450} className="rounded-lg h-[400px] object-cover" />
-                <h2 className="mt-4 text-xl font-bold">{review.title}</h2>
+            {/* Hiển thị featured event đầu tiên */}
+            {events.length > 0 && (
+              <div className="md:col-span-2">
+                <Image
+                  src={events[0].EventImageUrl}
+                  alt={events[0].EventName}
+                  width={730}
+                  height={450}
+                  className="rounded-lg h-[400px] object-cover"
+                />
+                <h2 className="mt-4 text-xl font-bold">{events[0].EventName}</h2>
+                <p className="text-sm text-gray-600">{events[0].EventDescription}</p>
               </div>
-            ))}
+            )}
+
+            {/* Danh sách các event còn lại */}
             <div className="space-y-4">
-              {reviews.filter(review => !review.featured).map((review, index) => (
+              {events.slice(1).map((event, index) => (
                 <div key={index} className="flex space-x-2 border-b pb-2">
-                  <Image src={review.image} alt={review.title} width={120} height={120} className="rounded h-[120px]" />
+                  <Image
+                    src={event.EventImageUrl}
+                    alt={event.EventName}
+                    width={120}
+                    height={120}
+                    className="rounded h-[120px]"
+                  />
                   <div>
-                    <h3 className="text-sm font-semibold">{review.title}</h3>
-                    <p className="text-xs">👍 {review.likes}</p>
+                    <h3 className="text-sm font-semibold">{event.EventName}</h3>
+                    <p className="text-xs text-gray-600">{event.EventDescription}</p>
                   </div>
                 </div>
               ))}
             </div>
+
             <div className="col-span-3 flex justify-center mt-1">
-              <button className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition">Xem thêm</button>
+              <button className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition">
+                Xem thêm
+              </button>
             </div>
           </div>
         </div>
+
 
  
         <section className="mw-global global-px my-20">
@@ -310,29 +336,35 @@ function Home({ movies, error }) {
   );
 }
 
-export async function getStaticProps(ctx) {
+export async function getStaticProps() {
+  const controller = new AbortController();
+
+  let movies = [];
+  let events = [];
+  let error = null;
+
   try {
-    const controller = new AbortController();
-    const result = await getMovies(
-      { limit: 10, page: 1, search: "" },
-      controller
-    );
-    
-    return {
-      props: {
-        error: "",
-        movies: result.data.metadata || "",
-      },
-    };
-  } catch (error) {
-    return {
-      props: {
-          error: {
-              message: error.message
-          }
-      }
-    };
+    const movieRes = await getMovies({ limit: 10, page: 1, movieStatus: "now-showing" }, controller);
+    movies = movieRes.data.metadata || [];
+  } catch (err) {
+    error = `Movies error: ${err.message}`;
   }
+
+  try {
+    const eventRes = await getEvents({ limit: 4, page: 1 }, controller);
+    events = eventRes.data.data || [];
+  } catch (err) {
+    error = error ? `${error} | Events error: ${err.message}` : `Events error: ${err.message}`;
+  }
+
+  return {
+    props: {
+      movies,
+      events,
+      error,
+    },
+  };
 }
+
 
 export default Home;
