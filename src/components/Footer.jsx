@@ -121,13 +121,12 @@ function Footer() {
         <div className="flex-1 flex flex-col gap-3  text-primary-label">
           <p className="font-bold mb-5 text-black">Tags</p>
           <div className="grid grid-cols-3 gap-2">
-              <button className="btn btn-primary text-white">Primary</button>
-              <button className="btn btn-primary text-white">Primary</button>
-              <button className="btn btn-primary text-white">Primary</button>
-              <button className="btn btn-primary text-white">Primary</button>
-              <button className="btn btn-primary text-white">Primary</button>
-              <button className="btn btn-primary text-white">Primary</button>
-              <button className="btn btn-primary text-white">Primary</button>
+              <button className="btn btn-primary text-white">SignUp</button>
+              <button className="btn btn-primary text-white">SignIn</button>
+              <button className="btn btn-primary text-white">Movies</button>
+              <button className="btn btn-primary text-white">Buy Tickets</button>
+              <button className="btn btn-primary text-white">Events</button>
+              <button className="btn btn-primary text-white">Contact</button>
           </div>
         </div>
       </div>

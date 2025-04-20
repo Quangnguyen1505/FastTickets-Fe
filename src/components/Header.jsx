@@ -21,7 +21,7 @@ function Header() {
       ]
     },
     { title: "Buy Ticket", url: "/buy-tickets" },
-    { title: "Event", url: "/" },
+    { title: "Event", url: "/events" },
     { title: "Contact", url: "/contact" },
   ];
   const Languages = [

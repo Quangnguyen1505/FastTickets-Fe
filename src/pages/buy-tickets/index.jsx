@@ -5,50 +5,7 @@ import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import Layout from '@/components/Layout'
 import { getMovies } from '@/utils/https/movies'
-import { getShowTimeByMovieId } from '@/utils/https/showtimes'
-
-const moviesValue = [
-    {
-      id: 1,
-      title: "TÌM XÁC: MA KHÔNG ĐẦU",
-      age: "T18",
-      genre: "Hài, Kinh Dị",
-      duration: 119,
-      country: "Việt Nam",
-      language: "VN",
-      releaseDate: "18.04.2025",
-      poster: "/images/movies/movie-1.png", // Thay bằng URL thật hoặc local image
-      trailerUrl: "#", // hoặc link youtube
-    },
-    {
-      id: 2,
-      title: "LẬT MẶT 8: VÒNG TAY NẮNG",
-      age: "K",
-      genre: "Hành Động",
-      releaseDate: "30.04.2025",
-      poster: "/images/movies/movie-2.png",
-      trailerUrl: "#",
-    },
-    {
-      id: 3,
-      title: "THÁM TỬ KIÊN: KỲ ÁN KHÔNG ĐẦU",
-      age: "T18",
-      genre: "Hình Sự",
-      releaseDate: "30.04.2025",
-      poster: "/images/movies/movie-3.png",
-      trailerUrl: "#",
-    },
-    {
-      id: 4,
-      title: "ĐỊA ĐẠO: MẶT TRỜI TRONG BÓNG TỐI",
-      age: "T16",
-      genre: "Chiến Tranh",
-      releaseDate: "04.04.2025",
-      poster: "/images/movies/movie-1.png",
-      trailerUrl: "#",
-    },
-  ];
-  
+import { getShowTimeByMovieId } from '@/utils/https/showtimes'  
 
 export default function ContactPage() {
   const controller = useMemo(() => new AbortController(), [])
@@ -59,6 +16,7 @@ export default function ContactPage() {
   const [hovered, setHovered] = useState(null)
 
   const [movieOptions, setMovieOptions] = useState([])
+  const [moviesValue, setMoviesValue] = useState([])
   const [timeOptions, setTimeOptions] = useState([])
   const [dateOptions, setDateOptions] = useState([])
 
@@ -76,6 +34,8 @@ export default function ContactPage() {
         id: movie.id,
         title: movie.movie_title
       })))
+      setMoviesValue(res.data.metadata)
+      console.log("res : ", res.data.metadata)
     }
     fetchMovies()
   }, [])
@@ -183,37 +143,36 @@ export default function ContactPage() {
             CURRENTLY SHOWING MOVIES
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mt-10">
-            {visibleMovies.map((movie, index) => (
+            {visibleMovies && visibleMovies.map((movie, index) => (
                 <div
                 key={movie.id}
                 className="bg-[#0e0c2c] rounded-xl overflow-hidden shadow-md border border-gray-700 hover:shadow-xl transition-all duration-300 flex flex-col"
                 >
                 {/* Tag tuổi */}
                 <div className="absolute bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded top-2 left-2 z-10">
-                    {movie.age}
+                    {movie.movie_age_rating}
                 </div>
 
                 {/* Ảnh poster */}
                 <div className="relative group overflow-hidden">
                     <img
-                    src={movie.poster}
-                    alt={movie.title}
+                    src={movie.movie_image_url}
+                    alt={movie.movie_title}
                     className="w-full h-[400px] object-cover transition-transform duration-300 group-hover:scale-105"
                     />
 
                     {/* Thông tin chi tiết khi hover */}
                     <div className="absolute inset-0 bg-black bg-opacity-70 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 p-4 text-sm flex flex-col justify-end space-y-2">
-                    <div className="flex items-center gap-2">🎭 {movie.genre}</div>
-                    <div className="flex items-center gap-2">⏱️ {movie.duration} phút</div>
-                    <div className="flex items-center gap-2">🌏 {movie.country}</div>
-                    <div className="flex items-center gap-2">🈯 {movie.language}</div>
+                    <div className="flex items-center gap-2">🎭 {movie.movie_director}</div>
+                    <div className="flex items-center gap-2">⏱️ {movie.movie_time} phút</div>
+                    <div className="flex items-center gap-2">🌏 {movie.movie_country}</div>
                     </div>
                 </div>
 
                 {/* Thông tin tên và nút hành động */}
                 <div className="p-4 flex flex-col justify-between flex-grow">
                     <p className="text-white font-bold text-center text-sm min-h-[3rem]">
-                    {movie.title}
+                    {movie.movie_title}
                     </p>
                     <div className="mt-2 flex items-center justify-between gap-2">
                     <a

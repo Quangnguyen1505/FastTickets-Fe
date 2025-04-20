@@ -1,19 +1,54 @@
 'use client'
 
+import { useMemo, useState } from 'react'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import Layout from '@/components/Layout'
 import { Mail, Phone, MapPin } from 'lucide-react'
+import { createContactMessage } from '@/utils/https/contact'
 
 export default function ContactPage() {
+  const controller = useMemo(() => new AbortController(), [])
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: '',
+  })
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      console.log('Form data:', formData)
+      const res = await createContactMessage(formData, controller)
+      if (res.data.code === 200) {
+        alert('Message sent successfully!')
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          message: '',
+        })
+      }
+    } catch (error) {
+      alert('Network error. Please try again later.')
+      console.log('Error:', error)
+    }
+  }
   return (
-    <Layout title={"Contact"}>
+    <Layout title="Contact">
       <Header />
       <main className="w-full mt-12 md:mt-[5.5rem] bg-white py-10">
         <div className="max-w-6xl mx-auto px-4">
-          <h1 className="text-4xl font-bold text-center text-blue-700 mb-4">
-            Contact Us
-          </h1>
+          <h1 className="text-4xl font-bold text-center text-blue-700 mb-4">Contact Us</h1>
           <p className="text-center text-gray-600 mb-12">
             We&apos;re always ready to support you. Send us a message or reach out directly for the fastest assistance!
           </p>
@@ -57,29 +92,53 @@ export default function ContactPage() {
             {/* Contact Form */}
             <div className="bg-white border border-blue-200 p-8 rounded-2xl shadow-xl">
               <h2 className="text-2xl font-semibold text-blue-800 mb-6">Send a Message</h2>
-              <form className="space-y-6">
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
                   <label className="block mb-2 text-sm font-medium text-blue-700">Full Name</label>
                   <input
                     type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
                     className="w-full px-4 py-2 border border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="John Doe"
+                    required
                   />
                 </div>
                 <div>
                   <label className="block mb-2 text-sm font-medium text-blue-700">Email</label>
                   <input
                     type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
                     className="w-full px-4 py-2 border border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="example@gmail.com"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-blue-700">Phone</label>
+                  <input
+                    type="text"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="+84 0344055404"
+                    required
                   />
                 </div>
                 <div>
                   <label className="block mb-2 text-sm font-medium text-blue-700">Message</label>
                   <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
                     rows={4}
                     className="w-full px-4 py-2 border border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Write your message here..."
+                    required
                   />
                 </div>
                 <button

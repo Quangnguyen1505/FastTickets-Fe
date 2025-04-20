@@ -292,44 +292,15 @@ function Home({ movies, events, error }) {
             </div>
 
             <div className="col-span-3 flex justify-center mt-1">
-              <button className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition">
+              <button 
+              className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition"
+              onClick={() => handleNavigate("/events")}
+              >
                 Xem thêm
               </button>
             </div>
           </div>
         </div>
-
-
- 
-        <section className="mw-global global-px my-20">
-          <div className="flex flex-col gap-12 p-10 rounded-lg items-center justify-center shadow-[0px_16px_32px_0px_#BABABA4D] text-center">
-            <div className="flex flex-col items-center justify-center gap-2">
-              <p className="text-body text-2xl tracking-wide">
-                Be the vanguard of the
-              </p>
-              <p className="text-primary text-5xl font-bold">Moviegoers</p>
-            </div>
-            <form
-              className="flex flex-col md:flex-row gap-4"
-              onSubmit={submitHandler}
-            >
-              <input
-                className="px-4 border-primary-line border-2 h-12 rounded-md w-72 text-sm tracking-wider"
-                placeholder="Type your email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <button type="submit" className="btn btn-primary text-white">
-                Join now
-              </button>
-            </form>
-            <div className="text-primary-label text-sm  tracking-wider">
-              <p>By joining you as a Tickitz member,</p>
-              <p>we will always send you the latest updates via email .</p>
-            </div>
-          </div>
-        </section>
       </main>
       <Footer />
     </Layout>
