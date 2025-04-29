@@ -22,7 +22,6 @@ import {
 } from '@/utils/https/movies';
 
 function Movies() {
-  const dispatch = useDispatch();
   const controller = useMemo(() => new AbortController(), []);
   const [movieStatus, setMovieStatus] = useState('now-showing')
   const [dataMovies, setDataMovies] = useState([]);
@@ -49,6 +48,8 @@ function Movies() {
     const params = {
       limit: 100,
       page,
+      search,
+      sort,
       movieStatus: movieStatus
     };
     try {
@@ -71,9 +72,9 @@ function Movies() {
   };
 
   const addMovie = (id, name) => {
-    dispatch(orderAction.resetOrder());
-    const payload = { id: id, name: name };
-    dispatch(orderAction.addMovieId(payload));
+    // dispatch(orderAction.resetOrder());
+    // const payload = { id: id, name: name };
+    // dispatch(orderAction.addMovieId(payload));
     handleNavigate(`/movies/${id}`);
   };
 

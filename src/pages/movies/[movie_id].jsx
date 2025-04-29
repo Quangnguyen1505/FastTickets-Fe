@@ -4,6 +4,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useRef
 } from 'react';
 
 import Image from 'next/image';
@@ -11,7 +12,6 @@ import { useRouter } from 'next/router';
 import Skeleton from 'react-loading-skeleton';
 
 import placeholder from '@/Assets/profile/poster.png';
-import CardCinema from '@/components/CardCinema';
 import Seat from '@/components/Seat';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
@@ -21,6 +21,7 @@ import {
 } from '@/utils/https/movies';
 import { getShowTimeByMovieId } from '@/utils/https/showtimes';
 import { getAvailableDates } from '@/utils/https/dates';
+import { useSelector } from 'react-redux';
 
 function ListDate({ date, isClick, isActive }) {
   const d = new Date(date);
@@ -44,11 +45,16 @@ function ListDate({ date, isClick, isActive }) {
 function MovieDetails() {
   const router = useRouter();
   const controller = useMemo(() => new AbortController(), []);
+  const buyFastTicketsStore = useSelector((state) => state.fastTickets);
+  const seatSectionRef = useRef(null);
+
   const [selectDate, setSelectDate] = useState(
     new Date().toISOString().split("T")[0] 
   );
   const [dataMovie, setDataMovie] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedShowtime, setSelectedShowtime] = useState(null);
+
   const movieId = router.query.movie_id;
 
   const [showtimesData, setShowtimesData] = useState([]);
@@ -65,22 +71,42 @@ function MovieDetails() {
           (showtime) => showtime.show_date === selectDate
         );
         setShowtimesData(filtered);
+
+        if (
+          buyFastTicketsStore?.movieId === movieId && 
+          buyFastTicketsStore?.show_time) {
+          const matchedShowtime = filtered.find(
+            (show) => show.start_time === buyFastTicketsStore.show_time
+          );
+          if (matchedShowtime) {
+            setSelectedShowtime(matchedShowtime);
+          }
+        }
       } catch (error) {
         console.error("Error fetching showtimes:", error);
       }
     };
   
     fetchShowtimes();
-  }, [movieId, selectDate]);
+  }, [movieId, selectDate, buyFastTicketsStore]);
 
-  // Định nghĩa hàm handleSelectDate để xử lý sự kiện khi người dùng chọn ngày
+  useEffect(() => {
+    if (
+      buyFastTicketsStore?.movieId === movieId && 
+      selectedShowtime) {
+      seatSectionRef.current?.scrollIntoView({ 
+        behavior: "smooth", 
+        block: "start" 
+      });
+    }
+  }, [selectedShowtime, buyFastTicketsStore, movieId]);
+  
   const handleSelectDate = (date) => {
     console.log("data ", date);
     
     setSelectDate(date); // Cập nhật giá trị selectDate với ngày người dùng đã chọn
   };
 
-  const [selectedShowtime, setSelectedShowtime] = useState(null);
   const handleClick = (showtime) => {
     console.log("show time ", showtime)
     setSelectedShowtime(showtime); // Cập nhật state để mở seat
@@ -103,14 +129,20 @@ function MovieDetails() {
         setIsLoading(false);
   
         // Nếu ngày hôm nay có trong danh sách thì set
-        const todayInDates = dateRes.data.find(d => {
-          return new Date(d.open_date).toISOString().split("T")[0] === today;
-        });
-  
-        if (todayInDates) {
-          setSelectDate(today);
+        if (
+          buyFastTicketsStore?.movieId === movieId && 
+          buyFastTicketsStore?.date) {
+          setSelectDate(buyFastTicketsStore.date);
         } else {
-          setSelectDate(dateRes.data[0]?.open_date); // fallback
+          // Nếu không thì set mặc định hôm nay
+          const todayInDates = dateRes.data.find(d => {
+            return new Date(d.open_date).toISOString().split("T")[0] === today;
+          });
+          if (todayInDates) {
+            setSelectDate(today);
+          } else {
+            setSelectDate(dateRes.data[0]?.open_date); // fallback
+          }
         }
   
       } catch (error) {
@@ -120,7 +152,7 @@ function MovieDetails() {
     };
   
     fetchInitialData();
-  }, [router.isReady, movieId]);
+  }, [router.isReady, movieId, buyFastTicketsStore]);
   
   
   return (
@@ -181,16 +213,16 @@ function MovieDetails() {
           </>
         ) : (
           <>
-          <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-xl">
-            <iframe
-              src={`https://www.youtube.com/embed/${dataMovie.movie_video_trailer_code}`}
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="absolute top-0 left-0 w-full h-full"
-            ></iframe>
-          </div>
+            <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-xl mb-10">
+              <iframe
+                src={`https://www.youtube.com/embed/${dataMovie.movie_video_trailer_code}`}
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="absolute top-0 left-0 w-full h-full"
+              ></iframe>
+            </div>
             <section className="w-full gap-6 justify-between">
               <div>
                 <div className="flex flex-col md:flex-row gap-14">
@@ -287,7 +319,10 @@ function MovieDetails() {
                   </div>
                 </div>
 
-                <div className="justify-between gap-y-5 w-full mt-16">
+                <div 
+                className="justify-between gap-y-5 w-full mt-16"
+                ref={seatSectionRef}
+                >
                   <h1 className="text-2xl font-bold">Fast Ticket</h1>
                   <div className="flex flex-row">
                     {showtimesData.length > 0 ? (
@@ -308,8 +343,11 @@ function MovieDetails() {
                     )}
                   </div>
                   {selectedShowtime && (
-                    <div className="mt-5">
+                    <div 
+                    className="mt-5"
+                    >
                       <h2 className="text-lg font-bold">Chọn Ghế Cho Suất Chiếu: {selectedShowtime.start_time}</h2>
+                      <p className="mb-2 text-center font-semibold">Screen</p>
                       <Seat room_id={selectedShowtime.Room?.id} show_time_id={selectedShowtime.id}/>
                     </div>
                   )}

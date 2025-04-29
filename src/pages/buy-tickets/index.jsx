@@ -6,9 +6,15 @@ import Header from '@/components/Header'
 import Layout from '@/components/Layout'
 import { getMovies } from '@/utils/https/movies'
 import { getShowTimeByMovieId } from '@/utils/https/showtimes'  
+import { useDispatch } from 'react-redux'
+import { FastTicketsAction } from '@/redux/slice/buyFastTicket'
+import { useRouter } from 'next/router'
+import convertToAPIDateFormat from '@/helper'
 
 export default function ContactPage() {
   const controller = useMemo(() => new AbortController(), [])
+  const dispatch = useDispatch();
+  const router = useRouter();
 
   const [selectedMovie, setSelectedMovie] = useState(null)
   const [selectedDate, setSelectedDate] = useState('')
@@ -108,7 +114,17 @@ export default function ContactPage() {
       </div>
     )
   }
+  const handleNavigate = (url) => router.push(url);
 
+  const handleBuyTicketFast = () => {
+    dispatch(FastTicketsAction.addDataFastTickets({
+        date: convertToAPIDateFormat(selectedDate),
+        show_time: selectedTime,
+        movieId: selectedMovie.id
+    }));
+    handleNavigate(`/movies/${selectedMovie.id}`);
+
+  }
   return (
     <Layout title="Contact">
       <Header />
@@ -133,6 +149,7 @@ export default function ContactPage() {
             <button
               className={`bg-red-600 hover:bg-red-700 text-white font-bold text-sm px-6 py-2 rounded-md transition duration-300 shadow-md ${selectedMovie && selectedDate && selectedTime ? '' : 'opacity-50 cursor-not-allowed'}`}
               disabled={!(selectedMovie && selectedDate && selectedTime)}
+              onClick={handleBuyTicketFast}
             >
               BOOK NOW
             </button>
@@ -146,7 +163,8 @@ export default function ContactPage() {
             {visibleMovies && visibleMovies.map((movie, index) => (
                 <div
                 key={movie.id}
-                className="bg-[#0e0c2c] rounded-xl overflow-hidden shadow-md border border-gray-700 hover:shadow-xl transition-all duration-300 flex flex-col"
+                className="bg-[#0e0c2c] cursor-pointer rounded-xl overflow-hidden shadow-md border border-gray-700 hover:shadow-xl transition-all duration-300 flex flex-col"
+                onClick={() => router.push(`/movies/${movie.id}`)}
                 >
                 {/* Tag tuổi */}
                 <div className="absolute bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded top-2 left-2 z-10">
@@ -181,7 +199,9 @@ export default function ContactPage() {
                     >
                         <span className="text-red-500">🔴</span> Xem Trailer
                     </a>
-                    <button className="bg-yellow-400 text-black text-sm font-bold py-1 px-4 rounded hover:bg-yellow-500">
+                    <button 
+                    className="bg-yellow-400 text-black text-sm font-bold py-1 px-4 rounded hover:bg-yellow-500"
+                    >
                         ĐẶT VÉ
                     </button>
                     </div>

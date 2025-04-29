@@ -8,3 +8,8 @@ export const getEvents = (params, controller) => {
      console.log("url events:", url);
     return axios.get(url, { signal: controller.signal });
 };
+
+export const getEventById = (id, controller) => {
+    const url = `${baseUrl}/v1/2024/events/${id}`;
+    return axios.get(url, { signal: controller.signal });
+}

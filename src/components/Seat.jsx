@@ -1,8 +1,12 @@
-"use client";
+import { useEffect, useMemo, useState } from "react";
 import { getAllSeatByRoomId } from "@/utils/https/seat";
 import { getPriceShowTimeBySeatTypeId } from "@/utils/https/showtimes";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { getAllSeatTypes } from "@/utils/https/seatTypes";
+import { useDispatch } from "react-redux";
+import { orderAction } from "@/redux/slice/order";
+import toast from 'react-hot-toast';
+import { FastTicketsAction } from "@/redux/slice/buyFastTicket";
 
 function SeatRow({ blockName, seatNumbers, type, onSeatClick }) {
   const getColorByType = (type) => {
@@ -44,8 +48,10 @@ function SeatRow({ blockName, seatNumbers, type, onSeatClick }) {
 
 function SeatLayout({ room_id, show_time_id }) {
   const controller = useMemo(() => new AbortController(), []);
-  const [arrayRow, setarrayRow] = useState([]);
+  const dispatch = useDispatch();
+  const [arrayRow, setArrayRow] = useState([]);
   const [prices, setPrices] = useState(null);
+  const [seatTypeMap, setSeatTypeMap] = useState({});
   const [selectedSeats, setSelectedSeats] = useState([]);
 
   const router = useRouter();
@@ -53,10 +59,29 @@ function SeatLayout({ room_id, show_time_id }) {
   useEffect(() => {
     const fetchAllSeatByRoomId = async () => {
       const data = await getAllSeatByRoomId(room_id, controller);
-      setarrayRow(data.data.metadata);
+      console.log("data ", data.data.metadata);
+      
+      setArrayRow(data.data.metadata);
     };
     fetchAllSeatByRoomId();
   }, [room_id]);
+
+  useEffect(() => {
+    const fetchAllSeatTypes = async () => {
+      const data = await getAllSeatTypes(controller);
+      const types = data.data.metadata;
+  
+      // Tạo map name -> id
+      const typeMap = types.reduce((acc, curr) => {
+        acc[curr.name.toLowerCase()] = curr.id;
+        return acc;
+      }, {});
+      setSeatTypeMap(typeMap);
+    };
+  
+    fetchAllSeatTypes();
+  }, []);
+  
 
   const groupedSeats = arrayRow.reduce((acc, seat) => {
     const row = seat.seat_row;
@@ -78,22 +103,11 @@ function SeatLayout({ room_id, show_time_id }) {
       }));
   };
 
-  const seatRows = {
-    A: { type: "normal", seats: processSeats(groupedSeats.A) || [] },
-    B: { type: "normal", seats: processSeats(groupedSeats.B) || [] },
-    C: { type: "normal", seats: processSeats(groupedSeats.C) || [] },
-    D: { type: "vip", seats: processSeats(groupedSeats.D) || [] },
-    E: { type: "vip", seats: processSeats(groupedSeats.E) || [] },
-    F: { type: "vip", seats: processSeats(groupedSeats.F) || [] },
-    G: { type: "vip", seats: processSeats(groupedSeats.G) || [] },
-    H: { type: "couple", seats: processSeats(groupedSeats.H) || [] },
-  };
-
   const handleSeatClick = async (seat) => {
     const exists = selectedSeats.some(
       (s) => s.row === seat.row && s.number === seat.number
     );
-  
+
     let newSeats;
     if (exists) {
       newSeats = selectedSeats.filter(
@@ -105,45 +119,98 @@ function SeatLayout({ room_id, show_time_id }) {
         show_time_id,
         controller
       );
-  
+
       const seatWithPrice = {
         ...seat,
         price: res.data.metadata,
       };
-  
+
       newSeats = [...selectedSeats, seatWithPrice];
     }
-  
+
     setSelectedSeats(newSeats);
-  
+
     if (newSeats.length > 0) {
       const lastPrice = newSeats[newSeats.length - 1]?.price || null;
-      setPrices(lastPrice); 
+      setPrices(lastPrice);
     } else {
       setPrices(null);
     }
   };
+
+  
+  const handleCheckoutNow = () => {
+    const user_order = selectedSeats.map((seat) => ({
+      type: getTypeNameFromId(seat.typeId), // ví dụ: "vip"
+      location: `${seat.row}${seat.number}` // ví dụ: "D1"
+    }));
+
+    const checkoutPrice = selectedSeats.reduce((total, seat) => total + seat.price, 0);
+
+    dispatch(orderAction.addDataBookNow({
+      user_order,
+      checkoutPrice,
+      show_time_id,
+    }));
+
+    dispatch(FastTicketsAction.resetFastTickets());
+
+    router.push(`/checkout-reviews/${show_time_id}`);
+  };
+
+  const getTypeNameFromId = (id) => {
+    if (id === seatTypeMap["vip"]) return "vip";
+    if (id === seatTypeMap["normal"]) return "normal";
+    if (id === seatTypeMap["couple"]) return "couple";
+    return "unknown";
+  };  
 
   return (
     <>
       <div className="w-full max-w-xl mx-auto px-2 pb-28">
         <div className="w-full flex justify-between gap-2 mb-6">
           <p className="w-5" />
-          <div className="w-full h-2 bg-accent rounded-md" />
+          <div className="w-full h-2 bg-neutral rounded-md" />
         </div>
 
-        {Object.entries(seatRows).map(([rowName, { type, seats }]) => (
+        {Object.entries(groupedSeats).map(([rowName, seats]) => (
           <SeatRow
             key={rowName}
             blockName={rowName}
-            seatNumbers={seats}
-            type={type}
+            seatNumbers={processSeats(seats)}
+            type={
+              seats[0]?.typeId === seatTypeMap["normal"]
+                ? "normal"
+                : seats[0]?.typeId === seatTypeMap["vip"]
+                ? "vip"
+                : seats[0]?.typeId === seatTypeMap["couple"]
+                ? "couple"
+                : "normal"
+            }            
             onSeatClick={handleSeatClick}
           />
         ))}
+        {/* ---- THÊM LEGEND Ở ĐÂY ---- */}
+        <div className="flex flex-wrap justify-center items-center gap-4 mt-12">
+          <div className="flex items-center gap-4">
+            <div className="w-4 h-4 md:w-6 md:h-6 bg-gray-300 rounded-md" />
+            <span className="text-xs md:text-sm text-black">Ghế thường</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="w-4 h-4 md:w-6 md:h-6 bg-yellow-400 rounded-md" />
+            <span className="text-xs md:text-sm text-black">Ghế VIP</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="w-4 h-4 md:w-6 md:h-6 bg-pink-400 rounded-md" />
+            <span className="text-xs md:text-sm text-black">Ghế đôi</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="w-4 h-4 md:w-6 md:h-6 bg-pink-400 rounded-md" />
+            <span className="text-xs md:text-sm text-black">Ghế đã đặt</span>
+          </div>
+        </div>
+        {/* ---- KẾT THÚC LEGEND ---- */}
       </div>
-
-      {/* THANH CỐ ĐỊNH */}
       {selectedSeats.length > 0 && (
         <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-300 shadow-lg z-50 px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
           <div className="text-sm md:text-base font-medium text-black">
@@ -175,8 +242,11 @@ function SeatLayout({ room_id, show_time_id }) {
 
             <button
               onClick={() => {
-                alert("Bạn đã chọn mua: " + selectedSeats.map(s => `${s.row}${s.number}`).join(", "));
-                router.push("/checkout-reviews");
+                // alert("Bạn đã chọn mua: " + selectedSeats.map(s => `${s.row}${s.number}`).join(", "));
+                toast.success(
+                  `Bạn đã chọn mua: ${selectedSeats.map(s => `${s.row}${s.number}`).join(", ")}`
+                );
+                handleCheckoutNow()
               }}
               className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
             >

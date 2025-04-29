@@ -58,9 +58,9 @@ function Header() {
           
           if (res.data.status === 200) {
             const userData = res.data.metadata;
-            let first_name = userData.first_name;
+            let first_name = userData.usr_first_name;
         
-            let last_name = userData.last_name;
+            let last_name = userData.usr_last_name;
             if (first_name === "null") {
               first_name = null;
             }
@@ -68,14 +68,14 @@ function Header() {
               last_name = null;
             }
   
-            const image = userData.avatar_url;
+            const image = userData.usr_avatar_url;
   
-            let phone = userData.phone;
+            let phone = userData.usr_phone;
             if (phone === "null") {
               phone = null;
             }
 
-            const email = userData.email;
+            const email = userData.usr_email;
             dispatch(usersAction.setProfile({first_name, last_name, email, image, phone})); 
           }
         } catch (error) {

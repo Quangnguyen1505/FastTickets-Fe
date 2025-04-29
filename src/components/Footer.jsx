@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 function Footer() {
+  const router = useRouter();
   return (
     <footer className="top-0 w-full">
       <div className="mw-global w-full global-px flex flex-wrap flex-col md:flex-row pt-16 pb-10 justify-between gap-10">
@@ -121,12 +123,30 @@ function Footer() {
         <div className="flex-1 flex flex-col gap-3  text-primary-label">
           <p className="font-bold mb-5 text-black">Tags</p>
           <div className="grid grid-cols-3 gap-2">
-              <button className="btn btn-primary text-white">SignUp</button>
-              <button className="btn btn-primary text-white">SignIn</button>
-              <button className="btn btn-primary text-white">Movies</button>
-              <button className="btn btn-primary text-white">Buy Tickets</button>
-              <button className="btn btn-primary text-white">Events</button>
-              <button className="btn btn-primary text-white">Contact</button>
+              <button 
+              className="btn btn-primary text-white" 
+              onClick={() => router.push(`/signup`)}
+              >SignUp</button>
+              <button 
+              className="btn btn-primary text-white"
+              onClick={() => router.push(`/signin`)}
+              >SignIn</button>
+              <button 
+              className="btn btn-primary text-white"
+              onClick={() => router.push(`/movies`)}
+              >Movies</button>
+              <button 
+              className="btn btn-primary text-white"
+              onClick={() => router.push(`/buy-tickets`)}
+              >Buy Tickets</button>
+              <button 
+              className="btn btn-primary text-white"
+              onClick={() => router.push(`/events`)}
+              >Events</button>
+              <button 
+              className="btn btn-primary text-white"
+              onClick={() => router.push(`/contact`)}
+              >Contact</button>
           </div>
         </div>
       </div>

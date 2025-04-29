@@ -4,16 +4,14 @@ import {
   useState,
 } from 'react';
 
-import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 import SideForAuth from '@/components/AuthSide';
 import Layout from '@/components/Layout';
 import PrivateRouteLOGIN from '@/components/PrivateRouteLogin';
-import { register } from '@/utils/https/auth';
 import { useDispatch } from 'react-redux';
 import { usersAction } from '@/redux/slice/users';
+import Oauth2Button from '@/components/Oauth2Button';
 
 function Signup(props) {
   const controller = useMemo(() => new AbortController(), []);
@@ -168,33 +166,7 @@ function Signup(props) {
                   Log in
                 </span>
               </p>
-              {/* <div className="flex items-center mt-5 w-[95%] justify-center">
-                <hr className="w-[36%] md:w-[41%]  h-[1px] bg-[#dedede]" />
-                <p className="text-[#aaaaaa] ml-9 text-xs">Or</p>
-                <hr className="w-[36%] md:w-[41%]  h-[1px] bg-[#dedede] ml-9" />
-              </div> */}
-              <div className="flex justify-center w-[95%] pb-[181px]">
-                <div className="flex gap-5 cursor-pointer items-center justify-center mt-5 bg-white drop-shadow-md w-full h-[64px]">
-                  <Image
-                    src="/google.svg"
-                    width={24}
-                    height={24}
-                    className="relative left-0"
-                    alt="google"
-                  />
-                  <button className="text-[#A0A3BD]">Google</button>
-                </div>
-                <div className="flex ml-9 gap-5 cursor-pointer items-center justify-center mt-5 bg-white drop-shadow-md w-full h-[64px]">
-                  <Image
-                    src="/facebook.svg"
-                    width={24}
-                    height={24}
-                    className="relative left-0"
-                    alt="google"
-                  />
-                  <button className="text-[#A0A3BD]">Facebook</button>
-                </div>
-              </div>
+              <Oauth2Button/>
             </div>
           </form>
         </div>

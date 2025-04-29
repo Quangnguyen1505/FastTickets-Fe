@@ -8,10 +8,10 @@ export const getGenre = (controller) => {
 };
 
 export const getMovies = (params, controller) => {
-  const { limit, page = 1, movieStatus = "", sort = "" } = params;
-  console.log("akak ", { limit, page, movieStatus, sort });
+  const { limit, page = 1, movieStatus = "", sort = "", search = "" } = params;
+  console.log("akak ", { limit, page, movieStatus, sort, search });
   
-  const url = `${baseUrl}/v1/api/movies?limit=${limit}&page=${page}&movie_status=${movieStatus}`;
+  const url = `${baseUrl}/v1/api/movies?limit=${limit}&page=${page}&movie_status=${movieStatus}&search=${search}&sort=${sort}`;
   return axios.get(url, { signal: controller.signal });
 };
 

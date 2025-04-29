@@ -24,9 +24,9 @@ export const editProfile = (
 ) => {
   const formData = new FormData();
   formData.append("file", image);
-  formData.append("first_name", first_name);
-  formData.append("last_name", last_name);
-  formData.append("phone", phone);
+  formData.append("usr_first_name", first_name);
+  formData.append("usr_last_name", last_name);
+  formData.append("usr_phone", phone);
   const url = `${baseUrl}/v1/api/users`;
   return axios.put(url, formData, {
     data: formData,

@@ -37,6 +37,18 @@ export const storeLogin = createAsyncThunk(
   }
 );
 
+export const storeOauthLogin = createAsyncThunk(
+  "auth/oauthLogin",
+  async ({ userData }, { fulfillWithValue, rejectWithValue }) => {
+    try {
+      return fulfillWithValue(userData);
+    } catch (err) {
+      return rejectWithValue(err);
+    }
+  }
+);
+
+
 // Slice dùng chung cho cả Register và Login
 const authSlice = createSlice({
   name: "auth",
@@ -102,6 +114,22 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.isRejected = true;
         state.err = action.payload;
+      })
+      // Xử lý storeOauthLogin
+      .addCase(storeOauthLogin.pending, (state) => {
+            state.isLoading = true;
+            state.isRejected = false;
+            state.isFulfilled = false;
+      })
+      .addCase(storeOauthLogin.fulfilled, (state, action) => {
+          state.isLoading = false;
+          state.isFulfilled = true;
+          state.data = action.payload;
+      })
+      .addCase(storeOauthLogin.rejected, (state, action) => {
+          state.isLoading = false;
+          state.isRejected = true;
+          state.err = action.payload;
       });
   },
 });

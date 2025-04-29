@@ -30,16 +30,16 @@ export const checkEmail = (email) => {
   const body = {
     email: email,
   };
-  const url = `${baseUrl}/auth/forgot-password`;
+  const url = `${baseUrl}/v1/api/access/forgotpassword`;
   return axios.post(url, body);
 };
 
-export const resetPassword = (id, newPassword, confirmPassword) => {
+export const resetPassword = (id, newPassword) => {
   const body = {
     newPassword: newPassword,
-    confirmPassword: confirmPassword,
+    paramsToken: id,
   };
-  const url = `${baseUrl}/auth/reset-password/${id}`;
+  const url = `${baseUrl}/v1/api/access/reset-password`;
   return axios.post(url, body);
 };
 

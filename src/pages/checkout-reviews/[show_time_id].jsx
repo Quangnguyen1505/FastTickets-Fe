@@ -3,10 +3,18 @@
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Layout from "@/components/Layout";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/router";
+import { useSelector } from "react-redux";
+import { getCheckout } from "@/utils/https/booking";
 
 export default function CheckoutReviews() {
-  // Dữ liệu giả lập (bạn có thể lấy từ localStorage hoặc API sau)
+  const router = useRouter();
+  const orderStore = useSelector((state) => state.order);
+  const controller = useMemo(() => new AbortController(), []);
+  const { show_time_id } = router.query;
+  const [checkouts, setCheckouts] = useState([]);
+  
   const movie = {
     title: "Dune: Hành Tinh Cát",
     image:
@@ -16,10 +24,19 @@ export default function CheckoutReviews() {
     seats: ["D5", "D6"],
     pricePerTicket: 90000,
   };
-
+  console.log("orderStore ", orderStore)
+  useEffect(() => {
+    if (show_time_id != orderStore?.show_time_id) {
+      router.push("/");
+    }
+    const fetchShowTimes = async () => {
+        const res = await getCheckout(show_time_id, orderStore?.user_order, controller);
+        console.log("res ", res.data.metadata);
+        setCheckouts(res.data.metadata);
+    }
+    fetchShowTimes();
+  }, [show_time_id])
   const [paymentMethod, setPaymentMethod] = useState("momo");
-
-  const totalPrice = movie.seats.length * movie.pricePerTicket;
 
   return (
     <>
@@ -32,33 +49,33 @@ export default function CheckoutReviews() {
                     {/* Ảnh phim */}
                     <div className="md:w-1/3 w-full bg-gray-100 p-4 flex items-center justify-center">
                         <img
-                        src={movie.image}
-                        alt={movie.title}
+                        src={checkouts.showtime?.movie.image_url}
+                        alt={checkouts.showtime?.movie.movie_title || "Movie Title"}
                         className="rounded-xl shadow-md w-full h-auto object-cover"
                         />
                     </div>
 
                     {/* Thông tin đơn hàng */}
                     <div className="md:w-2/3 w-full p-6 space-y-5">
-                        <h2 className="text-2xl font-bold text-gray-800">{movie.title}</h2>
+                        <h2 className="text-2xl font-bold text-gray-800">{checkouts.showtime?.movie.movie_title || "Movie Title"}</h2>
                         <p className="text-sm text-gray-600">
-                        <strong>Phòng chiếu:</strong> {movie.room}
+                            <strong>Phòng chiếu:</strong> {checkouts.showtime?.room.room_name || "-"}
                         </p>
                         <p className="text-sm text-gray-600">
-                        <strong>Suất chiếu:</strong> {movie.showtime}
+                            <strong>Suất chiếu:</strong> {checkouts.showtime?.start_time || ""} - {checkouts.showtime?.show_date || ""}
                         </p>
                         <p className="text-sm text-gray-600">
-                        <strong>Ghế:</strong> {movie.seats.join(", ")}
+                            <strong>Ghế:</strong> {checkouts.user_order?.map((item) => item.location).join(", ")}
                         </p>
                         <p className="text-sm text-gray-600">
-                        <strong>Số vé:</strong> {movie.seats.length}
+                            <strong>Số vé:</strong> {checkouts.user_order?.length}
                         </p>
                         <p className="text-sm text-gray-600">
-                        <strong>Giá mỗi vé:</strong>{" "}
-                        {movie.pricePerTicket.toLocaleString()}₫
+                            <strong>Giá vé:</strong>{" "}
+                            {checkouts.user_order?.map((item) => item.price).join("vnđ, ")}
                         </p>
                         <p className="text-lg font-semibold text-green-600">
-                        Tổng: {totalPrice.toLocaleString()}₫
+                            Tổng: {checkouts.checkoutPrice}vn₫
                         </p>
 
                         {/* Chọn phương thức thanh toán */}

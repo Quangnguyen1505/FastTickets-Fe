@@ -26,8 +26,8 @@ function Home({ movies, events, error }) {
   const router = useRouter();
   const handleNavigate = (url) => router.push(url);
   const addMovie = (id, name) => {
-    const payload = { id: id, name: name };
-    dispatch(orderAction.addMovieId(payload));
+    // const payload = { id: id, name: name };
+    // dispatch(orderAction.addMovieId(payload));
     handleNavigate(`/movies/${id}`);
   };
 
@@ -259,7 +259,7 @@ function Home({ movies, events, error }) {
           <div className="grid md:grid-cols-3 gap-4">
             {/* Hiển thị featured event đầu tiên */}
             {events.length > 0 && (
-              <div className="md:col-span-2">
+              <div className="md:col-span-2 cursor-pointer" onClick={() => router.push(`/events/${events[0].ID }`)}>
                 <Image
                   src={events[0].EventImageUrl}
                   alt={events[0].EventName}
@@ -268,24 +268,28 @@ function Home({ movies, events, error }) {
                   className="rounded-lg h-[400px] object-cover"
                 />
                 <h2 className="mt-4 text-xl font-bold">{events[0].EventName}</h2>
-                <p className="text-sm text-gray-600">{events[0].EventDescription}</p>
+                <p className="text-sm text-gray-600 line-clamp-3">{events[0].EventDescription}</p>
               </div>
             )}
 
             {/* Danh sách các event còn lại */}
             <div className="space-y-4">
               {events.slice(1).map((event, index) => (
-                <div key={index} className="flex space-x-2 border-b pb-2">
+                <div 
+                key={index} 
+                className="flex space-x-2 h-[140px] cursor-pointer border-b pb-2"
+                onClick={() => router.push(`/events/${event.ID  }`)}
+                >
                   <Image
                     src={event.EventImageUrl}
                     alt={event.EventName}
                     width={120}
                     height={120}
-                    className="rounded h-[120px]"
+                    className="rounded h-[120px] w-[120px] object-cover flex-shrink-0"
                   />
-                  <div>
-                    <h3 className="text-sm font-semibold">{event.EventName}</h3>
-                    <p className="text-xs text-gray-600">{event.EventDescription}</p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold line-clamp-2">{event.EventName}</h3>
+                    <p className="text-xs text-gray-600 line-clamp-3">{event.EventDescription}</p>
                   </div>
                 </div>
               ))}

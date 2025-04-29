@@ -6,6 +6,7 @@ import Header from '@/components/Header'
 import Layout from '@/components/Layout'
 import { Mail, Phone, MapPin } from 'lucide-react'
 import { createContactMessage } from '@/utils/https/contact'
+import toast from 'react-hot-toast'
 
 export default function ContactPage() {
   const controller = useMemo(() => new AbortController(), [])
@@ -30,7 +31,9 @@ export default function ContactPage() {
       console.log('Form data:', formData)
       const res = await createContactMessage(formData, controller)
       if (res.data.code === 200) {
-        alert('Message sent successfully!')
+        toast.success(
+          `Bạn đã gửi tin nhắn thành công`
+        );
         setFormData({
           name: '',
           email: '',
@@ -39,7 +42,9 @@ export default function ContactPage() {
         })
       }
     } catch (error) {
-      alert('Network error. Please try again later.')
+      toast.error(
+        `Gửi tin nhắn thất bại`
+      );
       console.log('Error:', error)
     }
   }
