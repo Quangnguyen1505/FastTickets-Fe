@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
 import { getCheckout } from "@/utils/https/booking";
+import { checkStatusPayment, genUrlPaymentMomo } from "@/utils/https/payment";
 
 export default function CheckoutReviews() {
   const router = useRouter();
@@ -14,16 +15,11 @@ export default function CheckoutReviews() {
   const controller = useMemo(() => new AbortController(), []);
   const { show_time_id } = router.query;
   const [checkouts, setCheckouts] = useState([]);
-  
-  const movie = {
-    title: "Dune: Hành Tinh Cát",
-    image:
-      "https://res.cloudinary.com/shopdevcloud/image/upload/v1744367055/Cinema/movies/1744367050846.jpg", // link ảnh poster
-    showtime: "20:00 - 11/04/2025",
-    room: "Phòng 5 - Galaxy Nguyễn Du",
-    seats: ["D5", "D6"],
-    pricePerTicket: 90000,
-  };
+  const [paymentMethod, setPaymentMethod] = useState("momo");
+  const userStore = useSelector((state) => state.user.data);
+  const accessToken = userStore.tokens?.accessToken;
+  const userId = userStore.shop?.id;
+
   console.log("orderStore ", orderStore)
   useEffect(() => {
     if (show_time_id != orderStore?.show_time_id) {
@@ -36,7 +32,31 @@ export default function CheckoutReviews() {
     }
     fetchShowTimes();
   }, [show_time_id])
-  const [paymentMethod, setPaymentMethod] = useState("momo");
+
+  const handleBooking = async () => {
+    const data = {
+        show_time_id: checkouts.showtime?.show_time_id,
+        user_order: orderStore?.user_order
+    };
+    console.log("data ", data);
+    try {
+        console.log("paymentMethod ", paymentMethod);
+        if(paymentMethod == 'momo') {
+            const res = await genUrlPaymentMomo(
+                userId, 
+                accessToken, 
+                data.show_time_id, 
+                data.user_order, 
+                controller
+            );
+            const url = res.data.metadata.payUrl;
+            console.log("paymentMethod ", url);
+            router.push(url);
+        }
+    } catch (error) {
+      console.log("Error booking tickets:", error);
+    }
+  }
 
   return (
     <>
@@ -130,7 +150,7 @@ export default function CheckoutReviews() {
                         {/* Nút xác nhận */}
                         <div className="pt-4">
                         <button
-                            onClick={() => alert("Thanh toán thành công!")}
+                            onClick={handleBooking}
                             className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold text-lg transition-all duration-300"
                         >
                             Xác nhận và Thanh toán
