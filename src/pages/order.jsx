@@ -10,6 +10,7 @@ import { getHistorySeat } from "@/utils/https/transaction";
 import { useDispatch, useSelector } from "react-redux";
 import { orderAction } from "@/redux/slice/order";
 import PrivateRouteNotLogin from "@/components/PrivateRouteNotLogin";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 function Order() {
   const reduxStore = useSelector((state) => state.user);
@@ -245,3 +246,11 @@ function Order() {
 }
 
 export default Order;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common', 'auth'])),
+    },
+  };  
+}

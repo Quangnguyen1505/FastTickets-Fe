@@ -1,9 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useTranslation } from "next-i18next";
 
 function SideForAuth() {
   const router = useRouter();
+  const { t } = useTranslation('auth');
   return (
     <>
       <div className="md:flex-[0.8] lg:flex-[1] w-full">
@@ -34,11 +36,13 @@ function SideForAuth() {
                       </Link>
                     </div>
                     <div>
-                      <p className="text-black bg-auth md:text-3xl lg:text-5xl mt-[101px] md:w-[99%]">
-                        Welcome to <br></br> Fast Ticket
+                      <p 
+                      className="text-black bg-auth md:text-3xl lg:text-5xl mt-[101px] md:w-[99%]"
+                      >
+                        {t('left.title_firt')} <br></br> {t('left.title_second')}
                       </p>
                       <p className="text-black/70 bg-auth mt-[22px] md:text-lg lg:text-2xl md:w-[80%]">
-                        Please Register to use more of our functions
+                        {t('left.description')} 
                       </p>
                     </div>
                   </div>
@@ -71,10 +75,10 @@ function SideForAuth() {
                     </div>
                     <div className="ml-">
                       <p className="text-black bg-auth md:text-3xl lg:text-5xl mt-[101px] md:w-[99%]">
-                        Welcome to <br></br> Fast Ticket
+                        {t('left.title_firt')} <br></br> {t('left.title_second')}
                       </p>
                       <p className="text-black/70 bg-auth mt-[22px] md:text-lg lg:text-2xl md:w-[80%]">
-                        Please Login to use more of our functions
+                        {t('left_login.description')}
                       </p>
                     </div>
                   </div>
@@ -107,11 +111,10 @@ function SideForAuth() {
                     </div>
                     <div className="ml-[30px]">
                       <p className="text-black bg-auth md:text-3xl lg:text-5xl mt-[90px] md:w-[99%]">
-                        Lets reset your password
+                        {t('left_forgot_password.title')}
                       </p>
                       <p className="text-black/70 bg-auth mt-[22px] md:text-lg lg:text-2xl md:w-[80%]">
-                        To be able to use your account again, please complete the
-                        following steps.
+                        {t('left_forgot_password.description')}
                       </p>
                     </div>
                   </div>
@@ -144,11 +147,10 @@ function SideForAuth() {
                     </div>
                     <div className="ml-[30px]">
                       <p className="text-black bg-auth md:text-3xl lg:text-5xl mt-[90px] md:w-[99%]">
-                        Lets reset your password
+                        {t('left_reset_password.title')}
                       </p>
                       <p className="text-black/70 bg-auth mt-[22px] md:text-lg lg:text-2xl md:w-[80%]">
-                        To be able to use your account again, please complete the
-                        following steps.
+                        {t('left_reset_password.description')}
                       </p>
                     </div>
                   </div>

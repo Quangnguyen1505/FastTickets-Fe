@@ -7,6 +7,8 @@ import { orderAction } from "@/redux/slice/order";
 import { usersAction } from "@/redux/slice/users";
 import { logout } from "@/utils/https/auth";
 
+import i18next from "i18next";
+
 
 // import { logout } from "@/services/https/auth";
 
@@ -30,15 +32,17 @@ function Logout({ isOpen, onClose, handler }) {
     logout(token, userId, controller)
       .then((result) => {
         setIsLoading(false);
-        router.push("/login");
         dispatch(usersAction.logout());
         dispatch(orderAction.resetOrder());
+
+        i18next.changeLanguage('vi');
+        router.push("/login");
       })
       .catch((err) => {
         setIsLoading(false);
 
-        router.push("/login");
         dispatch(usersAction.logout());
+        router.push("/login");
       });
   };
   return (

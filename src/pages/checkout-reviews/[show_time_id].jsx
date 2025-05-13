@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
 import { getCheckout } from "@/utils/https/booking";
 import { checkStatusPayment, genUrlPaymentMomo } from "@/utils/https/payment";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 export default function CheckoutReviews() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export default function CheckoutReviews() {
       router.push("/");
     }
     const fetchShowTimes = async () => {
-        const res = await getCheckout(show_time_id, orderStore?.user_order, controller);
+        const res = await getCheckout(show_time_id, orderStore?.user_order, orderStore?.snacks_order, controller);
         console.log("res ", res.data.metadata);
         setCheckouts(res.data.metadata);
     }
@@ -36,7 +37,8 @@ export default function CheckoutReviews() {
   const handleBooking = async () => {
     const data = {
         show_time_id: checkouts.showtime?.show_time_id,
-        user_order: orderStore?.user_order
+        user_order: orderStore?.user_order,
+        snacks_order: orderStore?.snacks_order
     };
     console.log("data ", data);
     try {
@@ -47,6 +49,7 @@ export default function CheckoutReviews() {
                 accessToken, 
                 data.show_time_id, 
                 data.user_order, 
+                data.snacks_order,
                 controller
             );
             const url = res.data.metadata.payUrl;
@@ -90,6 +93,9 @@ export default function CheckoutReviews() {
                         <p className="text-sm text-gray-600">
                             <strong>Số vé:</strong> {checkouts.user_order?.length}
                         </p>
+                        <p className="text-sm text-gray-600">
+                            <strong>Đồ uống/Đồ ăn:</strong> {checkouts.snacks_order_detail?.map((item) => item.name).join(", ") || "-"} x{checkouts.snacks_order_detail?.map((item) => item.quantity).join(", ") || "-"}
+                        </p>    
                         <p className="text-sm text-gray-600">
                             <strong>Giá vé:</strong>{" "}
                             {checkouts.user_order?.map((item) => item.price).join("vnđ, ")}
@@ -165,4 +171,16 @@ export default function CheckoutReviews() {
     </Layout>
     </>
   );
+}
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common', 'auth'])),
+    },
+  };  
+}
+
+export async function getStaticPaths() {
+    return { paths: [], fallback: 'blocking' };
 }

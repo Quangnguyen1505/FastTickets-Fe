@@ -12,9 +12,8 @@ const initialState = {
 // Định nghĩa thunk cho Register
 export const storeRegister = createAsyncThunk(
   "auth/register",
-  async ({ email, password, controller }, { rejectWithValue, fulfillWithValue }) => {
+  async ({ response }, { rejectWithValue, fulfillWithValue }) => {
     try {
-      const response = await register(email, password, controller);
       const { data } = response;
       return fulfillWithValue(data.metadata);
     } catch (err) {
@@ -26,9 +25,9 @@ export const storeRegister = createAsyncThunk(
 // Định nghĩa thunk cho Login
 export const storeLogin = createAsyncThunk(
   "auth/login",
-  async ({ email, password, controller }, { rejectWithValue, fulfillWithValue }) => {
+  async ({ response }, { rejectWithValue, fulfillWithValue }) => {
     try {
-      const response = await login(email, password, controller);
+      // const response = await login(email, password, controller);
       const { data } = response;
       return fulfillWithValue(data.metadata);
     } catch (err) {
@@ -74,7 +73,7 @@ const authSlice = createSlice({
           ...prevState.data,
           first_name: action.payload.first_name,
           last_name: action.payload.last_name,
-          image: action.payload.image,
+          image: action.payload.image || prevState.data.image,
           phone: action.payload.phone,
         },
       };

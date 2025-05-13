@@ -1,7 +1,22 @@
 import Image from "next/image";
-
+import { useRouter } from "next/router";
+import { emitter } from "@/helper/eventemit";
+import { useEffect } from "react";
 
 function Oauth2Button() {
+    const router = useRouter();
+    useEffect(() => {
+      const handleLoginSuccess = () => {
+        console.log('🟢 Đã nhận tín hiệu loginSuccess!');
+        // Xử lý tại đây...
+        router.push('/');
+      };
+
+      emitter.on('loginSuccess', handleLoginSuccess);
+      return () => {
+        emitter.off('loginSuccess', handleLoginSuccess);
+      };
+    }, []);
     const handleLoginGoogle = (e) => {
         e.preventDefault();
         const googleLoginUrl = `${process.env.NEXT_PUBLIC_ANALYTICS_ID}/v1/api/oauth/google`; 
@@ -12,7 +27,7 @@ function Oauth2Button() {
       e.preventDefault();
       const facebookLoginUrl = `${process.env.NEXT_PUBLIC_ANALYTICS_ID}/v1/api/oauth/facebook`; 
       openSignInWindow(facebookLoginUrl, "Facebook SignIn");
-  };
+    };
       
     const openSignInWindow = (url, name) => {
         const width = 500;

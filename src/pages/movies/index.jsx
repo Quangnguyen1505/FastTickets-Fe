@@ -10,18 +10,19 @@ import _ from 'lodash';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import Skeleton from 'react-loading-skeleton';
-import { useDispatch } from 'react-redux';
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import Layout from '@/components/Layout';
-import { orderAction } from '@/redux/slice/order';
 import {
   getGenre,
   getMovies,
 } from '@/utils/https/movies';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
 
 function Movies() {
+  const { t } = useTranslation('common');
   const controller = useMemo(() => new AbortController(), []);
   const [movieStatus, setMovieStatus] = useState('now-showing')
   const [dataMovies, setDataMovies] = useState([]);
@@ -117,7 +118,7 @@ function Movies() {
           <section className="mw-global global-px h-auto">
             <div className="border-l-4 border-blue-500 pl-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex flex-col md:flex-row md:items-center gap-6">
-                <h1 className="text-2xl font-bold">Movies</h1>
+                <h1 className="text-2xl font-bold">{t("title_movie")}</h1>
                 <div className="flex gap-6 mt-2">
                   <div
                     onClick={() => setMovieStatus("now-showing")}
@@ -125,7 +126,7 @@ function Movies() {
                       movieStatus === "now-showing" ? "text-primary" : "text-black"
                     }`}
                   >
-                    <p className="translate-y-1">Now Showing</p>
+                    <p className="translate-y-1">{t("title_movie_now_showing")}</p>
                     {movieStatus === "now-showing" && (
                       <div className="h-[3px] w-[65%] bg-primary mx-auto rounded-lg" />
                     )}
@@ -136,7 +137,7 @@ function Movies() {
                       movieStatus === "upcoming-movies" ? "text-primary" : "text-black"
                     }`}
                   >
-                    <p className="translate-y-1">Upcomming</p>
+                    <p className="translate-y-1">{t("title_movie_up_comming")}</p>
                     {movieStatus === "upcoming-movies" && (
                       <div className="h-[3px] w-[65%] bg-primary mx-auto rounded-lg" />
                     )}
@@ -153,9 +154,9 @@ function Movies() {
                   });
                 }}
               >
-                <option value={""}>Sort</option>
-                <option value={"asc"}>Movie Name (A-Z)</option>
-                <option value={"dsc"}>Movie Name (Z-A)</option>
+                <option value={""}>{t("sort")}</option>
+                <option value={"asc"}>{t("sort_movie")} (A-Z)</option>
+                <option value={"dsc"}>{t("sort_movie")} (Z-A)</option>
               </select>
             </div>
           </section>
@@ -184,7 +185,7 @@ function Movies() {
                     })
                   }
                 >
-                  All
+                  {t("all")}
                 </button>
                 {cat && cat.map(({ id, genre_name }) => (
                   <button
@@ -210,11 +211,11 @@ function Movies() {
             )}
           </div>
           <div className="container mx-auto p-5 ">
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {dataMovies.map((movie, index) => (
                 <div 
                   key={index} 
-                  className="flex flex-col items-center"
+                  className="flex flex-col items-center cursor-pointer"
                   onClick={() => {
                     addMovie(movie.id, movie.movie_title);
                   }}
@@ -231,175 +232,6 @@ function Movies() {
               ))}
             </div>
           </div>
-          {/* {dataMovies && dataMovies.length < 1 && !isLoading && (
-            <section className="h-2/4 flex flex-col justify-center items-center gap-6">
-              <Image src="/images/movie.svg" alt="" width={128} height={128} />
-              <p className="text-lg font-semibold">Movie not Found</p>
-            </section>
-          )}
-
-          <section className="mw-global global-px ">
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-10 md:gap-10 md:mb-10 justify-center justify-items-center">
-              {isLoading
-                ? Array("", "", "", "", "", "", "", "").map((item, idx) => (
-                    <Skeleton key={idx} count="1" width={224} height={480} />
-                  ))
-                :  dataMovies && dataMovies.map(
-                    ({ id, movie_name, image, genre_name, category }) => (
-                      <div
-                        className={`w-72 md:w-56 p-8 scale-105 md:scale-100 bg-white/20 border-[0.5px] border-primary-line rounded-md flex flex-col  items-center text-center gap-5 min-h-[10rem]`}
-                        key={id}
-                      >
-                        <div className="w-36 h-56 relative">
-                          <Image
-                            src={image}
-                            alt=""
-                            fill
-                            sizes="100%"
-                            className="object-cover"
-                          ></Image>
-                        </div>
-                        <div className="flex flex-col gap-1 mb-3">
-                          <p className="font-bold text-lg text-primary-title text-center">
-                            {movie_name}
-                          </p>
-                          <p className="text-xs text-gray-400 text-center">
-                            {category}
-                          </p>
-                        </div>
-                        <button
-                          className="mt-auto btn btn-sm btn-block btn-accent border-primary text-primary font-normal hover:border-primary-focus"
-                          onClick={() => {
-                            addMovie(id, movie_name);
-                          }}
-                        >
-                          Details
-                        </button>
-                      </div>
-                    )
-                  )}
-            </div>
-          </section>
-          <section className="global-px mw-global">
-            <div className="flex  gap-10 justify-center relative mt-20">
-              {isLoading ? (
-                <>
-                  <Skeleton count="1" width={168} height={48} />
-                  <Skeleton count="1" width={168} height={48} />
-                  <div className="absolute right-0 bottom-0 text-sm">
-                    <Skeleton count="1" width={80} height={20} />
-                  </div>
-                </>
-              ) : dataMovies && dataMovies.length > 0 ? (
-                <>
-                  {page > 1 && (
-                    <button
-                      className="group btn btn-primary border-primary text-white  btn-sm h-12  min-w-[8rem] flex gap-2 items-center"
-                      onClick={() =>
-                        handleNavigate({
-                          query: {
-                            ...query,
-                            page: meta.page - 1,
-                          },
-                        })
-                      }
-                    >
-                      <svg
-                        width="25"
-                        height="25"
-                        viewBox="0 -4.5 20 20"
-                        version="1.1"
-                        xmlns="http://www.w3.org/2000/svg"
-                        xmlnsXlink="http://www.w3.org/1999/xlink"
-                        className="group-hover:-translate-x-1 duration-150"
-                      >
-                        <g
-                          id="Page-1"
-                          stroke="none"
-                          strokeWidth="1"
-                          fill="none"
-                          fillRule="evenodd"
-                        >
-                          <g
-                            id="Dribbble-Light-Preview"
-                            transform="translate(-260.000000, -6643.000000)"
-                            fill="#ffffff"
-                          >
-                            <g
-                              id="icons"
-                              transform="translate(56.000000, 160.000000)"
-                            >
-                              <polygon
-                                id="arrow_left-[#347]"
-                                points="209.657 6494 211.071 6492.46965 207.829 6489.17544 224 6489.17544 224 6487.24561 207.829 6487.24561 211.071 6484.28237 209.657 6483 204 6488.25105"
-                              ></polygon>
-                            </g>
-                          </g>
-                        </g>
-                      </svg>
-                      <p>Prev Page</p>
-                    </button>
-                  )}
-
-                  {meta.page < meta.totalpage && meta.page > 0 && (
-                    <button
-                      className="group btn btn-primary border-primary text-white  btn-sm h-12  min-w-[8rem] flex gap-2 items-center"
-                      onClick={() =>
-                        push({
-                          query: {
-                            ...router.query,
-                            page: meta.page + 1,
-                          },
-                        })
-                      }
-                    >
-                      <p>Next Page</p>
-                      <svg
-                        width="25px"
-                        height="25px"
-                        viewBox="0 -4.5 20 20"
-                        version="1.1"
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="group-hover:translate-x-1 duration-150"
-                        xmlnsXlink="http://www.w3.org/1999/xlink"
-                      >
-                        <g
-                          id="Page-1"
-                          stroke="none"
-                          strokeWidth="1"
-                          fill="none"
-                          fillRule="evenodd"
-                        >
-                          <g
-                            id="Dribbble-Light-Preview"
-                            transform="translate(-300.000000, -6643.000000)"
-                            fill="#fff"
-                          >
-                            <g
-                              id="icons"
-                              transform="translate(56.000000, 160.000000)"
-                            >
-                              <polygon
-                                id="arrow_right-[#346]"
-                                points="264 6488.26683 258.343 6483 256.929 6484.21678 260.172 6487.2264 244 6487.2264 244 6489.18481 260.172 6489.18481 256.929 6492.53046 258.343 6494"
-                              ></polygon>
-                            </g>
-                          </g>
-                        </g>
-                      </svg>
-                    </button>
-                  )}
-                  <div className="absolute right-0 bottom-0 text-sm hidden md:block">
-                    <p>
-                      Page {meta.page} of {meta.totalpage}
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <></>
-              )}
-            </div>
-          </section> */}
         </main>
         <Footer />
       </Layout>
@@ -408,3 +240,11 @@ function Movies() {
 }
 
 export default Movies;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common'])),
+    },
+  };  
+}

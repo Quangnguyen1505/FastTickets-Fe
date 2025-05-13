@@ -5,9 +5,11 @@ import store, { persistor } from "../redux/store";
 
 import { Mulish } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import { appWithTranslation } from "next-i18next"; // Đảm bảo rằng bạn đã import đúng appWithTranslation
 
 const mulish = Mulish({ subsets: ["latin"] });
-export default function App({ Component, pageProps }) {
+
+function App({ Component, pageProps }) {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
@@ -19,3 +21,6 @@ export default function App({ Component, pageProps }) {
     </Provider>
   );
 }
+
+// Bọc ứng dụng với appWithTranslation để hỗ trợ tính năng dịch ngôn ngữ
+export default appWithTranslation(App);

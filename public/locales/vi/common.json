@@ -1,0 +1,90 @@
+{
+    "nav": [
+      {
+        "title": "Phim",
+        "url": "/movies",
+        "subMenu": [
+          { "title": "Đang chiếu", "url": "/movies?movie_status=now-showing" },
+          { "title": "Sắp chiếu", "url": "/movies?movie_status=upcoming-movies" }
+        ]
+      },
+      { "title": "Mua vé", "url": "/buy-tickets" },
+      { "title": "Sự kiện", "url": "/events" },
+      { "title": "Liên hệ", "url": "/contact" }
+    ],
+    "languages": [
+      {
+        "key": "vi",
+        "title": "Tiếng Việt",
+        "flag": "vietnam-svgrepo-com.svg"
+      },
+      {
+        "key": "en",
+        "title": "Tiếng Anh",
+        "flag": "united-kingdom-svgrepo-com.svg"
+      }
+    ],
+    "language_label": "Ngôn ngữ",
+    "sign_up": "Đăng ký",
+    "search": "Tìm kiếm...",
+    "title_banner_first": "Tại rạp của chúng tôi, Phim mới nhất",
+    "title_banner_second": "Tìm hiểu ngay!",
+    "title_movie": "Phim",
+    "title_movie_now_showing": "Phim đang chiếu",
+    "title_movie_up_comming": "Phim sắp chiếu",
+    "title_movie_more": "xem tất cả",
+    "title_event": "Sự kiện",
+    "title_event_more": "xem tất cả",
+    "title_event_more_button": "Xem thêm",
+    "all": "Tất cả",
+    "sort": "Sắp xếp",
+    "sort_movie": "Tên phim",
+    "buy_ticket": {
+        "title": "ĐẶT VÉ NHANH",
+        "step_frist": "1. Chọn phim",
+        "step_second": "2. Chọn rạp",
+        "step_thrid": "3. Chọn suất chiếu",
+        "button": "ĐẶT NGAY",
+        "movies_showing": "PHIM ĐANG CHIẾU",
+        "movies_button": "ĐẶT VÉ",
+        "movies_button_2": "XEM THÊM"
+    },
+    "events": {
+        "title": "SỰ KIỆN",
+        "movies_now_showing": "PHIM ĐANG CHIẾU",
+        "like": "Thích",
+        "unlike": "Bỏ thích"
+    },
+    "contact": {
+        "title": "Liên hệ chúng tôi",
+        "description": "Chúng tôi luôn sẵn sàng hỗ trợ bạn. Gửi tin nhắn hoặc liên hệ trực tiếp để được hỗ trợ nhanh nhất!",
+        "left_column": {
+            "title": "Thông tin rạp chiếu",
+            "address": "Địa chỉ:",
+            "phone": "Điện thoại:",
+            "email": "Email:",
+            "working_time": "Giờ mở cửa:"
+        },
+        "right_column": {
+            "title": "Gửi tin nhắn",
+            "name": "Họ và tên",
+            "email": "Email",
+            "phone": "Số điện thoại",
+            "message": "Tin nhắn",
+            "placeholder_message": "Nhập tin nhắn của bạn tại đây...",
+            "button": "Gửi tin nhắn"
+        }
+    },
+    "footer": {
+        "description": "Đừng chờ đợi xếp hàng nữa. Mua vé tiện lợi, xem phim thoải mái.",
+        "title_contact": "Liên hệ",
+        "title_tags": "Chức năng chính",
+        "tags_button_signup": "Đăng ký",
+        "tags_button_login": "Đăng nhập",
+        "tags_button_buy_ticket": "Mua vé",
+        "tags_button_event": "Sự kiện",
+        "tags_button_contact": "Liên hệ",
+        "tags_button_movies": "Phim"
+    }
+}
+  

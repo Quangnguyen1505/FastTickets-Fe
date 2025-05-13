@@ -12,8 +12,13 @@ import PrivateRouteLOGIN from '@/components/PrivateRouteLogin';
 import { useDispatch } from 'react-redux';
 import { usersAction } from '@/redux/slice/users';
 import Oauth2Button from '@/components/Oauth2Button';
+import { register } from '@/utils/https/auth';
+import toast from 'react-hot-toast';
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
 function Signup(props) {
+  const { t } = useTranslation('auth');
   const controller = useMemo(() => new AbortController(), []);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -49,23 +54,18 @@ function Signup(props) {
         setIsLoading(false);
         return;
       }
-      // const result = await register(email, password, controller);
+      const result = await register(email, password, controller);
       // console.log(result);
-      dispatch(usersAction.storeRegister({ email, password, controller }));
+      dispatch(usersAction.storeRegister({ response: result }));
       setIsLoading(false);
       router.push("/");
-      // console.log(result);
-      // setMsg("Create account success");
-      // setSuccess(true);
-      // setTimeout(() => {
-      //   router.push("/login");
-      // }, 700);
+      toast.success("Đăng ký thành công!");
     } catch (error) {
-      console.log(error);
+      console.log(error.response.data.message);
       setIsLoading(false);
       setInvalid(true);
       // setMsg(error.response.data.msg);
-      setMsg(error ||  "Có lỗi xảy ra!" );
+      setMsg(error.response.data.message ||  "Có lỗi xảy ra!" );
     }
   };
   const isDisabled = isChecked;
@@ -86,7 +86,7 @@ function Signup(props) {
                 />
               </Link> */}
               <p className="text-[#121212] text-[26px] font-semibold hidden md:inline-block">
-                Fill your additional details
+                {t('right.title')}
               </p>
               {/* <p className="text-3xl font-semibold text-[#121212] mt-12 md:hidden">
                 Sign Up
@@ -102,9 +102,9 @@ function Signup(props) {
                   );
                 }}
                 className="mt-3 outline-none border border-solid border-[#dedede] w-[95%]   h-16 p-6"
-                placeholder=" Write your email"
+                placeholder={t('right.placeholder_email')}
               />
-              <p className="mt-6 text-base text-[#4E4B66]">Password</p>
+              <p className="mt-6 text-base text-[#4E4B66]">{t('right.password')}</p>
               <input
                 type="password"
                 value={formData.password}
@@ -115,7 +115,7 @@ function Signup(props) {
                   );
                 }}
                 className="mt-3 outline-none border border-solid border-[#dedede] w-[95%]  h-16 p-6"
-                placeholder=" Write your password"
+                placeholder={t('right.placeholder_password')}
               />
               <div className="mt-6">
                 <label className="cursor-pointer">
@@ -128,7 +128,7 @@ function Signup(props) {
                   />
 
                   <span className="text-[#696F79] ml-[10px] hidden md:inline-block">
-                    I agree to terms & conditions
+                    {t('right.comfirm_checkbox')}
                   </span>
                   <p className="text-info text-center mt-4">{invalid && msg}</p>
                   <p className="text-success text-center mt-4">
@@ -152,18 +152,18 @@ function Signup(props) {
                   }
                   className="btn btn-primary w-[94%] rounded mt-5"
                 >
-                  Join for free
+                  {t('right.button')}
                 </button>
               )}
               <p className="text-[#696F79] mt-6 text-center">
-                Do you already have an account?{" "}
+                {t('right.login')}{" "}
                 <span
                   onClick={() => {
                     router.push("/login");
                   }}
                   className="text-[#9570FE] cursor-pointer"
                 >
-                  Log in
+                  {t('right.login_link')}
                 </span>
               </p>
               <Oauth2Button/>
@@ -176,3 +176,11 @@ function Signup(props) {
 }
 
 export default Signup;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['auth'])),
+    },
+  };  
+}

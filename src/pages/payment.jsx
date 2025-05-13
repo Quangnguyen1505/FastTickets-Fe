@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 import PrivateRouteNotLogin from "@/components/PrivateRouteNotLogin";
 import { createBooking } from "@/utils/https/transaction";
 import order from "@/redux/slice/order";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 function Payment() {
   const userRedux = useSelector((state) => state.user.data);
@@ -337,3 +338,11 @@ function Payment() {
 }
 
 export default Payment;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['auth'])),
+    },
+  };  
+}

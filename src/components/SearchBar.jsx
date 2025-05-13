@@ -1,6 +1,8 @@
 import { useRouter } from "next/router";
+import { useTranslation } from "react-i18next";
 
 function SearchBar({ value, setValue, className }) {
+  const { t } = useTranslation("common");
   const router = useRouter();
   return (
     <label
@@ -46,7 +48,7 @@ function SearchBar({ value, setValue, className }) {
             });
           }
         }}
-        placeholder="Search..."
+        placeholder={t("search")}
       />
     </label>
   );

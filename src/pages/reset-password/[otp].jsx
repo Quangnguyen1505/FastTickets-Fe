@@ -8,8 +8,10 @@ import SideForAuth from "@/components/AuthSide";
 import Layout from "@/components/Layout";
 import PrivateRouteLOGIN from "@/components/PrivateRouteLogin";
 import { resetPassword } from "@/utils/https/auth";
+import { useTranslation } from "next-i18next";
 
 function ResetPassword() {
+  const { t } = useTranslation('auth');
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [msg, setMsg] = useState("");
@@ -44,7 +46,7 @@ function ResetPassword() {
       .catch((error) => {
         console.error(error);
         setInvalid(true);
-        setMsg(error.response?.data?.msg || "Reset password failed");
+        setMsg(error.response?.data?.message || "Reset password failed");
         setIsLoading(false);
       });
   };
@@ -66,10 +68,10 @@ function ResetPassword() {
                 />
               </Link>
               <p className="text-[#121212] text-[26px] font-semibold mt-11 md:hidden">
-                Forgot Password
+                {t('right_reset_password.title')}
               </p>
               <p className="text-[#121212] text-[26px] font-semibold hidden md:inline-block">
-                Fill your new password
+                {t('right_reset_password.description')}
               </p>
               <p className="text-md text-[#8692a6] mt-[10px] md:mt-0">
                 We&apos;ll reset the password for you
@@ -83,7 +85,7 @@ function ResetPassword() {
                 }}
                 type="password"
                 className="mt-10 outline-none border border-solid border-[#dedede] w-[95%] h-16 p-6"
-                placeholder="Write your new password"
+                placeholder={t('right_reset_password.placeholder_password')}
               />
               <input
                 value={formData.confirmPassword}
@@ -93,7 +95,7 @@ function ResetPassword() {
                 }}
                 type="password"
                 className="mt-3 outline-none border border-solid border-[#dedede] w-[95%] h-16 p-6"
-                placeholder="Write your confirm password"
+                placeholder={t('right_reset_password.placeholder_comfirm_password')}
               />
               
               {invalid && (
@@ -117,7 +119,7 @@ function ResetPassword() {
                   }
                   className="btn btn-primary w-[94%] rounded mt-7"
                 >
-                  Reset Now
+                  {t('right_reset_password.button')}
                 </button>
               )}
             </div>
@@ -129,3 +131,11 @@ function ResetPassword() {
 }
 
 export default ResetPassword;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common', 'auth'])),
+    },
+  };  
+}

@@ -4,10 +4,14 @@ import { getMovies } from "@/utils/https/movies";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import Layout from "./Layout";
+import { useRouter } from "next/router";
+import { useTranslation } from "next-i18next";
 
 export default function MainLayout({ children }) {
+  const { t } = useTranslation('common');
   const controller = useMemo(() => new AbortController(), []);
   const [phimDangChieuList, setPhimDangChieuList] = useState([]);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchAllMovies = async () => {
@@ -35,11 +39,15 @@ export default function MainLayout({ children }) {
           {/* Bên phải PHIM ĐANG CHIẾU */}
           <div>
             <h2 className="text-lg font-bold border-l-4 border-blue-600 pl-3 mb-4 uppercase">
-              PHIM ĐANG CHIẾU
+              {t("events.movies_now_showing")}
             </h2>
             <div className="flex flex-col gap-6">
               {phimDangChieuList.map((movie) => (
-                <div key={movie.id} className="bg-white rounded shadow overflow-hidden">
+                <div 
+                key={movie.id} 
+                className="bg-white rounded shadow overflow-hidden cursor-pointer"
+                onClick={() => router.push(`/movies/${movie.id}`)}
+                >
                   <div className="relative">
                     <Image
                       src={movie.movie_image_url}

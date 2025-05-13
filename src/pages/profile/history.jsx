@@ -6,12 +6,46 @@ import placeholder from "@/Assets/profile/placeholder.png";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Layout from "@/components/Layout";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useEffect, useMemo } from "react";
+import { getBookingHistory } from "@/utils/https/booking";
+import { useRouter } from "next/router";
+import { useState } from "react";
+import QRCodeGenerator from "@/utils/qrCode";
 
 function History() {
+  const router = useRouter();
+  const { query } = router;
+  const { limit, page } = query;  
+
+  const controller = useMemo(() => new AbortController(), []);
   const userStore = useSelector((state) => state.user.data);
   const image = userStore.image;
   const firstName = userStore.first_name;
   const lastName = userStore.last_name;
+  const accessToken = userStore.tokens?.accessToken;
+  const userId = userStore.shop?.id;
+
+  const [bookingList, setBookingList] = useState([]);
+  const [showQRList, setShowQRList] = useState([]);
+
+  useEffect(() => {
+    const params = {
+      limit: limit || 20,
+      page: page || 1,
+    }
+    const fetchHistoryOrder = async () => {
+      try {
+        const res = await getBookingHistory(userId, accessToken, params, controller);
+        console.log("res ", res.data.metadata);
+        setBookingList(res.data.metadata || []);
+      } catch (error) {
+        console.log("Error fetching order history:", error);
+      }
+    }
+
+    fetchHistoryOrder();
+  }, [accessToken, userId, limit, page]);
   return (
     <Layout title={"History"}>
       <Header />
@@ -74,100 +108,73 @@ function History() {
                   <p className="w-36">Order History</p>
                   <div className="h-1 w-28 bg-primary absolute bottom-0"></div>
                 </div>
+                <Link href={"/profile/voucher"}>
+                    <p className="text-[#AAAAAA]">Voucher</p>
+                </Link>
               </div>
 
-              <div className="px-8 py-14 h-[40rem] overflow-y-auto">
-                <div className="border rounded-md">
-                  <div className="flex items-center justify-between px-4 md:px-8 py-10 border-b ">
-                    <div>
-                      <p className="text-sm text-[#AAAAAA]">
-                        Tuesday, 07 July 2020 - 04:30pm
-                      </p>
-                      <h2 className="font-semibold md:text-2xl">
-                        Spider-Man: Homecoming
-                      </h2>
+              {bookingList.map((booking, idx) => {
+                const startTime = booking.Showtime?.start_time;
+                const movieTitle = booking.Movie?.movie_title || "Tên phim không rõ";
+                const roomName = booking.Room?.room_name || "Phòng không rõ";
+                const showTime = booking.Showtime?.show_date || "Giờ không rõ";
+                const imageMovie =   booking.Movie?.movie_image_url; 
+                const bookingSeats = booking.booking_seats;
+                const statusLabel = booking.booking_status === "confirmed" ? "Ticket in active" : "Ticket used";
+                const btnClass = booking.booking_status === "confirmed" ? "btn-primary" : "btn-secondary";
+
+                const isQRVisible = showQRList[idx] || false;
+
+                const toggleQR = () => {
+                  const updated = [...showQRList];
+                  updated[idx] = !updated[idx]; // toggle trạng thái
+                  setShowQRList(updated);
+                };
+
+                return (
+                  <div key={booking.id} className="mt-4 border rounded-md">
+                    <div className="flex items-center justify-between px-4 md:px-8 py-10 border-b">
+                      <div>
+                        <p className="text-sm text-[#AAAAAA]">
+                          {showTime} - {startTime}
+                        </p>
+                        <h2 className="font-semibold md:text-2xl">{movieTitle}</h2>
+                        <p className="text-sm text-gray-500 mt-1">Phòng chiếu: {roomName}</p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Số ghế: {bookingSeats.map(seat => `${seat.Seat.seat_row}${seat.Seat.seat_number}`).join(", ")}
+                        </p>
+                      </div>
+                      <div>
+                        <Image
+                          src={imageMovie}
+                          width={174}
+                          height={27}
+                          className="h-6 md:h-auto"
+                          alt="cinema logo"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Image
-                        src={"/images/cineone21.svg"}
-                        width={174}
-                        height={27}
-                        className="h-6 md:h-auto"
-                        alt=""
-                      />
+                    <div className="flex justify-between items-center px-8 py-4">
+                      <button className={`btn ${btnClass} w-[40%] px-0 md:w-[30%]`}>
+                        {statusLabel}
+                      </button>
+                      <div
+                        className="flex items-center gap-2 text-[#AAAAAA] cursor-pointer"
+                        onClick={toggleQR}
+                      >
+                        <p>{isQRVisible ? "Hide QR" : "Show QR"}</p>
+                        <i className={`bi ${isQRVisible ? "bi-caret-up" : "bi-caret-down"}`}></i>
+                      </div>
                     </div>
+
+                    {isQRVisible && (
+                      <div className="px-8 pb-6 flex justify-center">
+                        <QRCodeGenerator data={`https://example.com/ticket/${booking.id}`} />
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-between items-center px-8 py-4">
-                    <button className="btn btn-primary w-[40%] px-0 md:w-[30%] ">
-                      Ticket in active
-                    </button>
-                    <div className="flex items-center gap-2 text-[#AAAAAA]">
-                      <p>Show Details</p>
-                      <i className="bi bi-caret-down"></i>
-                    </div>
-                  </div>
-                </div>
-                <div className=" mt-4 border rounded-md">
-                  <div className="flex items-center justify-between px-4 md:px-8 py-10 border-b ">
-                    <div>
-                      <p className="text-sm text-[#AAAAAA]">
-                        Monday, 14 June 2020 - 02:00pm
-                      </p>
-                      <h2 className="font-semibold md:text-2xl">
-                        Avengers: End Game
-                      </h2>
-                    </div>
-                    <div>
-                      <Image
-                        src={"/images/ebuid.svg"}
-                        width={174}
-                        height={27}
-                        className="h-6 md:h-auto"
-                        alt=""
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center px-8 py-4">
-                    <button className="btn btn-secondary w-[40%] px-0 md:w-[30%] ">
-                      Ticket used
-                    </button>
-                    <div className="flex items-center gap-2 text-[#AAAAAA]">
-                      <p>Show Details</p>
-                      <i className="bi bi-caret-down"></i>
-                    </div>
-                  </div>
-                </div>
-                <div className=" mt-4 border rounded-md">
-                  <div className="flex items-center justify-between px-4 md:px-8 py-10 border-b ">
-                    <div>
-                      <p className="text-sm text-[#AAAAAA]">
-                        Monday, 14 June 2020 - 02:00pm
-                      </p>
-                      <h2 className="font-semibold md:text-2xl">
-                        Avengers: End Game
-                      </h2>
-                    </div>
-                    <div>
-                      <Image
-                        src={"/images/ebuid.svg"}
-                        width={174}
-                        height={27}
-                        className="h-6 md:h-auto"
-                        alt=""
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center px-8 py-4">
-                    <button className="btn btn-secondary w-[40%] px-0 md:w-[30%] ">
-                      Ticket used
-                    </button>
-                    <div className="flex items-center gap-2 text-[#AAAAAA]">
-                      <p>Show Details</p>
-                      <i className="bi bi-caret-down"></i>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                );
+              })}
             </form>
           </div>
         </section>
@@ -178,3 +185,11 @@ function History() {
 }
 
 export default History;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common'])),
+    },
+  };  
+}

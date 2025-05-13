@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import placeholder from "@/Assets/profile/poster.png";
 import { createMovie, createSchedule } from "@/utils/https/admin";
 import { useSelector } from "react-redux";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 function ListCategory({ name, listCategory, handleClick }) {
   const isCategory = listCategory && listCategory.includes(name);
@@ -502,3 +503,11 @@ function CreateSchedule() {
 }
 
 export default CreateSchedule;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common', 'signup'])),
+    },
+  };  
+}

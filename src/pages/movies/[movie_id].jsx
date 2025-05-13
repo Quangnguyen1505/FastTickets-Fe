@@ -22,6 +22,7 @@ import {
 import { getShowTimeByMovieId } from '@/utils/https/showtimes';
 import { getAvailableDates } from '@/utils/https/dates';
 import { useSelector } from 'react-redux';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
 function ListDate({ date, isClick, isActive }) {
   const d = new Date(date);
@@ -66,10 +67,8 @@ function MovieDetails() {
   
     const fetchShowtimes = async () => {
       try {
-        const data = await getShowTimeByMovieId(movieId, controller);
-        const filtered = data.data.metadata.filter(
-          (showtime) => showtime.show_date === selectDate
-        );
+        const data = await getShowTimeByMovieId(movieId, selectDate, controller);
+        const filtered = data.data.metadata
         setShowtimesData(filtered);
 
         if (
@@ -105,6 +104,7 @@ function MovieDetails() {
     console.log("data ", date);
     
     setSelectDate(date); // Cập nhật giá trị selectDate với ngày người dùng đã chọn
+    setSelectedShowtime(null);
   };
 
   const handleClick = (showtime) => {
@@ -213,7 +213,7 @@ function MovieDetails() {
           </>
         ) : (
           <>
-            <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-xl mb-10">
+          <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-xl mb-10">
               <iframe
                 src={`https://www.youtube.com/embed/${dataMovie.movie_video_trailer_code}`}
                 title="YouTube video player"
@@ -244,7 +244,7 @@ function MovieDetails() {
                     </h1>
                 
                     <div className="flex flex-row flex-wrap gap-2">
-                      {dataMovie.movie_categories.map((cate) => (
+                      {dataMovie.movie_categories?.map((cate) => (
                         <span key={cate.cate_id} className="text-[#4E4B66] text-lg">
                           {cate.category?.cate_name || "category"}
                         </span>
@@ -342,7 +342,7 @@ function MovieDetails() {
                       </div>
                     )}
                   </div>
-                  {selectedShowtime && (
+                  {showtimesData.length > 0 && selectedShowtime && (
                     <div 
                     className="mt-5"
                     >
@@ -363,3 +363,15 @@ function MovieDetails() {
 }
 
 export default MovieDetails;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common', 'signup'])),
+    },
+  };  
+}
+
+export async function getStaticPaths() {
+  return { paths: [], fallback: 'blocking' };
+}

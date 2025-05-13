@@ -7,8 +7,11 @@ import SideForAuth from "@/components/AuthSide";
 import Layout from "@/components/Layout";
 import PrivateRouteLOGIN from "@/components/PrivateRouteLogin";
 import { checkEmail } from "@/utils/https/auth";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useTranslation } from "next-i18next";
 
 function Forgot() {
+  const { t } = useTranslation('auth');
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [msg, setMsg] = useState("");
@@ -34,7 +37,7 @@ function Forgot() {
       .catch((error) => {
         console.log(error);
         setInvalid(true);
-        setMsg(error.response.data.msg);
+        setMsg(error.response.data.message);
         setIsLoading(false);
       });
   };
@@ -55,10 +58,10 @@ function Forgot() {
                 />
               </Link>
               <p className="text-[#121212] text-[26px] font-semibold mt-11 md:hidden">
-                Forgot Password
+                {t('right_forgot_password.title')}
               </p>
               <p className="text-[#121212] text-[26px] font-semibold hidden md:inline-block">
-                Fill your complete email
+                {t('right_forgot_password.description')}
               </p>
               <p className="text-md text-[#8692a6] mt-[12px]">
                 we&apos;ll send a link to your email shortly
@@ -86,7 +89,7 @@ function Forgot() {
                   disabled={email === ""}
                   className="btn btn-primary w-[94%] rounded mt-7"
                 >
-                  Activate Now
+                  {t('right_forgot_password.button')}
                 </button>
               )}
             </div>
@@ -98,3 +101,11 @@ function Forgot() {
 }
 
 export default Forgot;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common', 'auth'])),
+    },
+  };  
+}

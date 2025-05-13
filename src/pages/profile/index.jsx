@@ -13,6 +13,7 @@ import PrivateRouteNotLogin from "@/components/PrivateRouteNotLogin";
 import { usersAction } from "@/redux/slice/users";
 import { editPassword } from "@/utils/https/user";
 import { editProfile } from "@/utils/https/user";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 function Profile() {
   const dispatch = useDispatch();
@@ -58,11 +59,17 @@ function Profile() {
     setFormData({ ...formData, phone: e.target.value });
   };
   const onFileInput = (e) => {
-    setFormData({
-      ...formData,
-      file: e.target.files[0],
-    });
-    setBlop(URL.createObjectURL(e.target.files[0]));
+    const file = e.target.files[0];
+    if (file) {
+      // Hiển thị preview
+      setBlop(URL.createObjectURL(file));
+      
+      // Cập nhật form data
+      setFormData(prev => ({
+        ...prev,
+        file: file
+      }));
+    }
   };
 
   const handleShowOld = () => {
@@ -145,6 +152,15 @@ function Profile() {
       dispatch(
         usersAction.editProfile({ first_name, last_name, image, phone })
       );
+
+      const newImageUrl = `${resultData.avatar_url}?t=${Date.now()}`;
+      setFormData(prev => ({
+        ...prev,
+        image: newImageUrl
+      }));
+
+    // Kích hoạt sự kiện cập nhật
+      window.dispatchEvent(new Event('profileUpdated'));
       setIsLoading(false);
       setError({ ...error, success: true });
     } catch (error) {
@@ -234,8 +250,11 @@ function Profile() {
                     <p className="min-w-[9rem]">Account Settings</p>
                     <div className="h-1 w-36 bg-primary absolute bottom-0"></div>
                   </div>
-                  <Link href={"profile/history"}>
+                  <Link href={"profile/history?page=1&limit=10"}>
                     <p className="text-[#AAAAAA]">Order History</p>
+                  </Link>
+                  <Link href={"profile/voucher"}>
+                    <p className="text-[#AAAAAA]">Voucher</p>
                   </Link>
                 </div>
                 <div className="px-8 py-14">
@@ -427,3 +446,11 @@ function Profile() {
 }
 
 export default Profile;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common', 'auth'])),
+    },
+  };  
+}

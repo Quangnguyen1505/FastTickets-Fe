@@ -10,38 +10,29 @@ import SearchBar from './SearchBar';
 import { getProfile } from '@/utils/https/user';
 import { usersAction } from '@/redux/slice/users';
 
+import { useTranslation } from 'next-i18next';
+import { getNotifications } from '@/utils/https/notification';
+
 function Header() {
-  const navList = [
-    { 
-      title: "Movies", 
-      url: "/movies",
-      subMenu: [
-        { title: "Now Showing", url: "/movies?movie_status=now-showing" },
-        { title: "Upcoming", url: "/movies?movie_status=upcoming-movies" }
-      ]
-    },
-    { title: "Buy Ticket", url: "/buy-tickets" },
-    { title: "Event", url: "/events" },
-    { title: "Contact", url: "/contact" },
-  ];
-  const Languages = [
-    {
-      key: "vietnamese",
-      title: "Vietnamese",
-      flag: "vietnam-svgrepo-com.svg",
-    },
-    {
-      key: "english",
-      title: "English",
-      flag: "united-kingdom-svgrepo-com.svg",
-    },
-  ];
+  const { t } = useTranslation('common');
+  const navLists = t('nav');
+  console.log("navList:", navLists);
+  const navList = useMemo(() => t('nav', { returnObjects: true }) || [], [t]);
+  const languages = useMemo(() => t('languages', { returnObjects: true }) || [], [t]);
+  
+  const router = useRouter();
+
+  const changeLanguage = (lang) => {
+    const { pathname, asPath, query } = router;
+    router.push({ pathname, query }, asPath, { locale: lang });
+  };
+
   const dispatch = useDispatch();
   const controller = useMemo(() => new AbortController(), []);
   const userStore = useSelector((state) => state.user.data);
   const token = userStore.tokens?.accessToken;
   const userId = userStore.shop?.id;
-  console.log("Languages data:", Languages);
+  console.log("Languages data:", languages);
   const [search, setSearch] = useState("");
   const [searchBar, setSearchBar] = useState(false);
   const [drawer, setDrawer] = useState(false);
@@ -49,8 +40,18 @@ function Header() {
   const [logout, setLogout] = useState(false);
 
   const [isOpen, setIsOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState(null);
+
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const notificationCount = notifications.length;
+
 
   useEffect(() => {
+      const handleProfileUpdate = () => {
+        if (token) fetchProfile();
+      };  
+
       const fetchProfile = async () => {
         try {
           const res = await getProfile(token, userId, controller);
@@ -82,20 +83,60 @@ function Header() {
           console.error("error get profile:", error);
         }
       };
+
+      const fetchNotifications = async () => {
+        try {
+          const res = await getNotifications(userId, token, controller);
+          console.log("res ", res);
+          if (res.data && res.data.metadata && res.data.metadata.notifications) {
+            setNotifications(res.data.metadata.notifications.map(noti => ({
+              id: noti.id,
+              content: noti.noti_content,
+              type: noti.noti_type,
+              createdAt: new Date(noti.created_at),
+              options: noti.noti_options
+            })));
+          }
+        } catch (error) {
+          console.error("error get notifications:", error);
+        }
+      }
+
+
   
-      if (token) fetchProfile();
+    if (token) {
+      fetchProfile();
+      fetchNotifications();
+    }
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
     }, [token, dispatch]);
+
+    const formatTimeAgo = (date) => {
+      const now = new Date();
+      const diffInSeconds = Math.floor((now - date) / 1000);
+      
+      if (diffInSeconds < 60) return 'Vừa xong';
+      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút trước`;
+      if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ trước`;
+      return `${Math.floor(diffInSeconds / 86400)} ngày trước`;
+    }; 
 
   const handleMenuToggle = () => {
     setIsOpen(!isOpen);
   };
   const user = useSelector((state) => state.user);
 
-  const router = useRouter();
-
   const navigate = (path, options = "") => {
     return router.push(path, options);
   };
+
+  const handleNotificationClick = (notification) => {
+    console.log("notification ", notification);
+    if (notification.type === "NEWS") {
+      router.push(`movies/${notification.options.id}`);
+    }
+  };  
 
   return (
     <>
@@ -173,7 +214,7 @@ function Header() {
                 >
                   <path d="M5.5 16.5H19.5M5.5 8.5H19.5M4.5 12.5H20.5M12.5 20.5C12.5 20.5 8 18.5 8 12.5C8 6.5 12.5 4.5 12.5 4.5M12.5 4.5C12.5 4.5 17 6.5 17 12.5C17 18.5 12.5 20.5 12.5 20.5M12.5 4.5V20.5M20.5 12.5C20.5 16.9183 16.9183 20.5 12.5 20.5C8.08172 20.5 4.5 16.9183 4.5 12.5C4.5 8.08172 8.08172 4.5 12.5 4.5C16.9183 4.5 20.5 8.08172 20.5 12.5Z" stroke="#121923" stroke-width="1.2"/>
                 </svg>
-                <p>Languages</p>
+                <p>{t('language_label')}</p>
                 <svg
                   width="10"
                   height="6"
@@ -191,9 +232,12 @@ function Header() {
                 tabIndex={0}
                 className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
               >
-                {Languages.map(({ key, title, flag }) => (
+                {languages?.map(({ key, title, flag }) => (
                   <li key={key}>
-                    <Link href={"/"}>
+                    <div 
+                      className="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-gray-100"
+                      onClick={() => changeLanguage(key)}
+                    >
                       <span>{title}</span>
                       <Image
                         src={`/images/${flag}`}
@@ -203,7 +247,7 @@ function Header() {
                         className="w-23 h-23 md:w-5 md:h-5"
                         style={{ width: "23px", height: "23px" }} 
                       />
-                    </Link>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -241,6 +285,69 @@ function Header() {
                 />
               </div>
             </div>
+            {user.isFulfilled && (
+              <div className="relative">
+                <button 
+                  className="flex items-center p-2 hover:bg-gray-100 rounded-full relative transition-colors"
+                  onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                >
+                  <svg 
+                    width="24" 
+                    height="24" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="text-gray-700"
+                  >
+                    <path 
+                      d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" 
+                      fill="currentColor"
+                    />
+                  </svg>
+                  
+                  {notificationCount > 0 && (
+                    <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center transform translate-x-1 -translate-y-1">
+                      {notificationCount}
+                    </span>
+                  )}
+                </button>
+
+                <div 
+                  className={`absolute right-0 mt-2 w-72 bg-white shadow-lg rounded-lg overflow-hidden ${
+                    isNotificationOpen ? 'block' : 'hidden'
+                  }`}
+                >
+                  <div className="p-4 border-b border-gray-200">
+                    <h3 className="font-semibold text-lg">Thông báo</h3>
+                  </div>
+                  
+                  <div className="max-h-96 overflow-y-auto">
+                    {notifications.length > 0 ? (
+                      notifications.map((notification) => (
+                        <div 
+                          key={notification.id}
+                          className="p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0 cursor-pointer"
+                          onClick={() => handleNotificationClick(notification)}
+                        >
+                          <p className="text-gray-700">{notification.content}</p>
+                          {notification.options?.title && (
+                            <p className="text-sm text-gray-500 mt-1">{notification.options.title}</p>
+                          )}
+                          <span className="text-xs text-gray-500 mt-1 block">
+                            {formatTimeAgo(notification.createdAt)}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-500">
+                        Không có thông báo mới
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="m-auto relative min-w-[3rem] min-h-[1rem]">
               {user.isFulfilled ? (
                 <div>
@@ -250,10 +357,14 @@ function Header() {
                   >
                     <div className="w-14 h-14 rounded-full">
                       <Image
-                        src={user.data?.image || "/images/profile.png"}
+                        src={user.data?.image ? `${user.data.image}?${Date.now()}` : "/images/profile.png"}
                         alt="photo"
                         width={56}
                         height={56}
+                        key={user.data?.image} // Thêm key này
+                        onError={(e) => {
+                          e.target.src = "/images/profile.png";
+                        }}
                       />
                     </div>
                   </div>
@@ -315,7 +426,7 @@ function Header() {
                     className="btn btn-primary text-white btn-sm h-10 m-auto"
                     onClick={() => navigate("/signup")}
                   >
-                    Sign Up
+                    {t('sign_up')}
                   </button>
                 </div>
               )}
@@ -370,49 +481,63 @@ function Header() {
                 className={`w-full`}
               />
             </div>
-            <hr />
-            <Link
-              className="global-px mw-global font-semibold py-4 flex items-center gap-2"
-              href={"/"}
-            >
-              Location{" "}
-              <svg
-                width="10"
-                height="6"
-                viewBox="0 0 10 6"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M8.96718 0.982517C8.89779 0.912989 8.81538 0.857828 8.72465 0.820192C8.63392 0.782556 8.53665 0.763184 8.43843 0.763184C8.3402 0.763184 8.24294 0.782556 8.15221 0.820192C8.06148 0.857828 7.97906 0.912989 7.90968 0.982517L4.99968 3.89252L2.08968 0.982516C1.94945 0.842283 1.75925 0.763501 1.56093 0.763501C1.36261 0.763501 1.17241 0.842283 1.03218 0.982516C0.891945 1.12275 0.813164 1.31295 0.813164 1.51127C0.813164 1.70959 0.891945 1.89978 1.03218 2.04002L4.47468 5.48252C4.54406 5.55204 4.62648 5.6072 4.71721 5.64484C4.80794 5.68248 4.9052 5.70185 5.00343 5.70185C5.10165 5.70185 5.19892 5.68248 5.28965 5.64484C5.38038 5.6072 5.46279 5.55204 5.53218 5.48252L8.97468 2.04002C9.25968 1.75502 9.25968 1.27502 8.96718 0.982517Z"
-                  fill="#14142B"
-                />
-              </svg>
-            </Link>
-
-            <hr />
-            <Link
-              className="global-px mw-global font-semibold py-4 flex items-center gap-2"
-              href={"/movies"}
-            >
-              Movies
-            </Link>
-
-            <hr />
-            <Link
-              className="global-px mw-global font-semibold py-4 flex items-center gap-2"
-              href={"/cinemas"}
-            >
-              Cinemas
-            </Link>
-
-            <hr />
-            <Link
-              className="global-px mw-global font-semibold py-4 flex items-center gap-2"
-              href={"/order"}
-            >
-              Buy Ticket
-            </Link>
+            {navList?.map((item) => (
+              <div key={item.title}>
+                <hr />
+                <div className="global-px mw-global">
+                  {item.subMenu ? (
+                    <div className="flex flex-col">
+                      <Link
+                        href={item.url}
+                        onClick={(e) => {
+                          e.preventDefault(); // Ngăn chuyển trang khi mở submenu
+                          setOpenMenu(openMenu === item.title ? null : item.title);
+                        }}
+                        className="font-semibold py-4 flex justify-center items-center gap-2"
+                      >
+                        {item.title}
+                        {/* Thêm mũi tên dropdown */}
+                        <svg
+                          width="10"
+                          height="6"
+                          viewBox="0 0 10 6"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          className={`transform transition-transform duration-300 ${
+                            openMenu === item.title ? "rotate-180" : ""
+                          }`}
+                        >
+                          <path
+                            d="M8.96718 0.982517C8.89779 0.912989 8.81538 0.857828 8.72465 0.820192C8.63392 0.782556 8.53665 0.763184 8.43843 0.763184C8.3402 0.763184 8.24294 0.782556 8.15221 0.820192C8.06148 0.857828 7.97906 0.912989 7.90968 0.982517L4.99968 3.89252L2.08968 0.982516C1.94945 0.842283 1.75925 0.763501 1.56093 0.763501C1.36261 0.763501 1.17241 0.842283 1.03218 0.982516C0.891945 1.12275 0.813164 1.31295 0.813164 1.51127C0.813164 1.70959 0.891945 1.89978 1.03218 2.04002L4.47468 5.48252C4.54406 5.55204 4.62648 5.6072 4.71721 5.64484C4.80794 5.68248 4.9052 5.70185 5.00343 5.70185C5.10165 5.70185 5.19892 5.68248 5.28965 5.64484C5.38038 5.6072 5.46279 5.55204 5.53218 5.48252L8.97468 2.04002C9.25968 1.75502 9.25968 1.27502 8.96718 0.982517Z"
+                            fill="#14142B"
+                          />
+                        </svg>
+                      </Link>
+                      {openMenu === item.title && (
+                        <div className="flex flex-col text-center">
+                          {item.subMenu.map((subItem) => (
+                            <Link
+                              key={subItem.title}
+                              href={subItem.url}
+                              className="py-2 text-gray-600 hover:text-gray-900"
+                            >
+                              {subItem.title}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Link
+                      href={item.url}
+                      className="font-semibold py-4 flex justify-center items-center gap-2"
+                    >
+                      {item.title}
+                    </Link>
+                  )}
+                </div>
+              </div>
+            ))}
             <hr />
 
             {user.isFulfilled ? (
@@ -492,25 +617,6 @@ function Header() {
       </header>
     </>
   );
-}
-
-export async function getStaticProps() {
-  const locations = [
-    {
-      key: "cgv-jaksel",
-      title: "CGV Jakarta Selatan",
-    },
-    {
-      key: "cgv-pvj-bandung",
-      title: "CGV Paris Van Java Bandung",
-    },
-  ];
-
-  return {
-    props: {
-      locations,
-    },
-  };
 }
 
 export default Header;

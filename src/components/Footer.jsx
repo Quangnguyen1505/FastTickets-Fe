@@ -1,14 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useTranslation } from "next-i18next";
 
 function Footer() {
+  const { t } = useTranslation('common');
   const router = useRouter();
   return (
     <footer className="top-0 w-full">
       <div className="mw-global w-full global-px flex flex-wrap flex-col md:flex-row pt-16 pb-10 justify-between gap-10">
         <div className="flex flex-col gap-7 lg:max-w-xs w-screen max-w-xs md:max-w-4xl lg:w-auto">
-            <div className="flex gap-x-5">
+            <div className="w-full flex justify-center gap-x-5 md:justify-start">
               <Link
                 href={"/"}
                 className="flex gap-5 mb-3 items-center text-primary"
@@ -97,7 +99,7 @@ function Footer() {
               </Link>
             </div>
               
-          <Link href={"/"}>
+          <Link href={"/"} className="mx-auto md:mx-0">
             <Image
               src="/images/img-title.svg"
               width={128}
@@ -105,14 +107,13 @@ function Footer() {
               alt={`Tickits`}
             />
           </Link>
-          <p className="text-primary-label  max-w-xs">
-            Stop waiting in line. Buy tickets conveniently, watch movies
-            quietly.
+          <p className="text-primary-label text-sm md:text-base text-center md:text-left px-4 md:px-0">
+            {t("footer.description")}
           </p>
         </div>
         <div className="flex-1 flex flex-col gap-3">
-          <p className="font-bold mb-5">Contact</p>
-          <div className="flex flex-row md:flex-col gap-3 gap-x-10">
+          <p className="font-bold mb-3 md:mb-5 text-center md:text-left">{t("footer.title_contact")}</p>
+          <div className="flex flex-col gap-2 md:gap-3 text-sm md:text-base text-center md:text-left">
             <p>Địa chỉ: Số 2 Trường Sa, P.17, Q. Bình Thạnh
             Tp. Hồ Chí Minh</p>
             <p>Điện thoại: (84).28.38400532</p>
@@ -120,37 +121,37 @@ function Footer() {
             <p>Email: phanhieu@tlu.edu.vn</p>
           </div>
         </div>
-        <div className="flex-1 flex flex-col gap-3  text-primary-label">
-          <p className="font-bold mb-5 text-black">Tags</p>
-          <div className="grid grid-cols-3 gap-2">
+        <div className="flex flex-col gap-2 md:gap-3 text-sm md:text-base text-center md:text-left">
+          <p className="font-bold mb-3 md:mb-5 text-black text-center md:text-left">{t("footer.title_tags")}</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               <button 
               className="btn btn-primary text-white" 
               onClick={() => router.push(`/signup`)}
-              >SignUp</button>
+              >{t("footer.tags_button_signup")}</button>
               <button 
-              className="btn btn-primary text-white"
+              className="btn btn-primary text-white "
               onClick={() => router.push(`/signin`)}
-              >SignIn</button>
+              >{t("footer.tags_button_login")}</button>
               <button 
-              className="btn btn-primary text-white"
+              className="btn btn-primary text-white "
               onClick={() => router.push(`/movies`)}
-              >Movies</button>
+              >{t("footer.tags_button_movies")}</button>
               <button 
-              className="btn btn-primary text-white"
+              className="btn btn-primary text-white "
               onClick={() => router.push(`/buy-tickets`)}
-              >Buy Tickets</button>
+              >{t("footer.tags_button_buy_ticket")}</button>
               <button 
-              className="btn btn-primary text-white"
+              className="btn btn-primary text-white "
               onClick={() => router.push(`/events`)}
-              >Events</button>
+              >{t("footer.tags_button_event")}</button>
               <button 
-              className="btn btn-primary text-white"
+              className="btn btn-primary text-white "
               onClick={() => router.push(`/contact`)}
-              >Contact</button>
+              >{t("footer.tags_button_contact")}</button>
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-center text-center px-10 pb-10">
+      <div className="flex items-center justify-center text-center px-4 md:px-10 pb-6 md:pb-10 text-sm md:text-base">
         © 2025 FastTicket. All Rights Reserved.
       </div>
     </footer>

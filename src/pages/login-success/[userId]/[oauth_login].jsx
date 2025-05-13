@@ -1,14 +1,14 @@
+import { emitter } from '@/helper/eventemit';
 import { storeOauthLogin } from '@/redux/slice/users';
 import { ApiloginSuccess } from '@/utils/https/oauth2';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 const LoginSuccess = () => {
   const controller = useMemo(() => new AbortController(), []);
   const router = useRouter();
   const dispatch = useDispatch();
-  const userStore = useSelector((state) => state.user.data);
   const { userId, oauth_login } = router.query;
 
   const [message, setMessage] = useState('');
@@ -27,8 +27,10 @@ const LoginSuccess = () => {
         if (res.data?.metadata?.err === 0) {
           dispatch(storeOauthLogin({ userData: res.data?.metadata }));
           setMessage('Login successful! Redirecting...');
-          router.replace('/');
+
+          await emitter.emit('loginSuccess');
           setTimeout(() => window.close(), 1000);
+          router.push('/');
         } else {
           setMessage('Login failed! Please try again.');
         }

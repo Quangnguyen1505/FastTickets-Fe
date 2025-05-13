@@ -8,8 +8,12 @@ import PrivateRouteLOGIN from "@/components/PrivateRouteLogin";
 import { usersAction } from "@/redux/slice/users";
 import { login } from "@/utils/https/auth";
 import Oauth2Button from "@/components/Oauth2Button";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import toast from "react-hot-toast";
 
 function Login() {
+  const { t } = useTranslation('auth');
   const controller = useMemo(() => new AbortController(), []);
   const [isLoading, setIsLoading] = useState(false);
   const [msg, setMsg] = useState("");
@@ -33,14 +37,15 @@ function Login() {
         setIsLoading(false);
         return;
       }
-      await login(email, password, controller);
-      // console.log(result);
-      dispatch(usersAction.storeLogin({ email, password, controller }));
+      const res = await login(email, password, controller);
+      console.log(res);
+      dispatch(usersAction.storeLogin({ response: res }));
       setIsLoading(false);
+      toast.success("Login Success");
       router.push("/");
     } catch (err) {
-      // console.log(err.response.data.msg);
-      setMsg(err.response.data.msg);
+      console.log("err.response.data.message ",err.response);
+      setMsg(err.response.data.message);
       setInvalid(true);
       setIsLoading(false);
     }
@@ -61,10 +66,10 @@ function Login() {
                 alt="Tickits"
               />
               <p className="text-[#121212] text-3xl font-semibold inline-block mt-12 md:mt-0">
-                Sign In
+                {t('right_login.title')}
               </p>
               <p className="text-md mt-3 text-[#aaaaaa] hidden md:inline-block">
-                Sign in with your data that you entered during your registration
+                {t('right_login.description')}
               </p>
               <p className="mt-6 text-base text-[#4E4B66]">Email</p>
               <input
@@ -79,7 +84,7 @@ function Login() {
                 className="mt-3 outline-none border border-solid border-[#dedede] w-[95%]   h-16 p-6"
                 placeholder=" Write your email"
               />
-              <p className="mt-6 text-base text-[#4E4B66]">Password</p>
+              <p className="mt-6 text-base text-[#4E4B66]">{t("right.password")}</p>
               <input
                 type="password"
                 value={formData.password}
@@ -93,7 +98,7 @@ function Login() {
 
               {isLoading ? (
                 <button className="btn btn-primary loading  w-[94%] rounded mt-5">
-                  Sign in
+                  {t('right_login.title')}
                 </button>
               ) : (
                 <button
@@ -106,20 +111,20 @@ function Login() {
                   }
                   className="btn btn-primary w-[94%] rounded mt-5"
                 >
-                  Sign in
+                  {t('right_login.title')}
                 </button>
               )}
 
               <p className="text-info text-center mt-4">{invalid && msg}</p>
               <p className="text-[#696F79] mt-6 text-center">
-                Forgot your password?{" "}
+                {t("right_login.forgot_password")}{" "}
                 <span
                   onClick={() => {
                     router.push("/reset-password");
                   }}
                   className="text-[#9570FE] cursor-pointer"
                 >
-                  Reset now
+                  {t("right_login.title_reset")}
                 </span>
               </p>
               <Oauth2Button/>
@@ -132,3 +137,11 @@ function Login() {
 }
 
 export default Login;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['auth'])),
+    },
+  };  
+}

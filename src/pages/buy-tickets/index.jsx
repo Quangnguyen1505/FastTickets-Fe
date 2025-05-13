@@ -10,8 +10,11 @@ import { useDispatch } from 'react-redux'
 import { FastTicketsAction } from '@/redux/slice/buyFastTicket'
 import { useRouter } from 'next/router'
 import convertToAPIDateFormat from '@/helper'
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import { useTranslation } from 'next-i18next'
 
 export default function ContactPage() {
+  const { t } = useTranslation('common');
   const controller = useMemo(() => new AbortController(), [])
   const dispatch = useDispatch();
   const router = useRouter();
@@ -62,7 +65,9 @@ export default function ContactPage() {
   useEffect(() => {
     const fetchShowtimes = async () => {
       if (selectedMovie?.id) {
-        const res = await getShowTimeByMovieId(selectedMovie.id, controller)
+        console.log("selectedDate : ", selectedDate)
+        const apiDate = convertToAPIDateFormat(selectedDate);
+        const res = await getShowTimeByMovieId(selectedMovie.id, apiDate, controller)
         const times = res.data.metadata.map(item => item.start_time)
         setTimeOptions(times)
       }
@@ -133,17 +138,17 @@ export default function ContactPage() {
           {/* Quick Ticket Booking Section */}
           <div className="bg-blue-50 p-6 rounded-xl flex flex-wrap gap-4 items-center justify-center mb-12 shadow-md border border-blue-200">
             <span className="text-lg font-bold text-blue-800">
-              QUICK TICKET BOOKING
+              {t('buy_ticket.title')}
             </span>
 
             {/* Movie Dropdown */}
-            {renderDropdown('1. Choose Movie', movieOptions, selectedMovie, setSelectedMovie, true, 'movie')}
+            {renderDropdown(t('buy_ticket.step_frist'), movieOptions, selectedMovie, setSelectedMovie, true, 'movie')}
 
             {/* Date Dropdown */}
-            {renderDropdown('2. Choose Date', dateOptions, selectedDate, setSelectedDate, !!selectedMovie, 'date')}
+            {renderDropdown(t('buy_ticket.step_second'), dateOptions, selectedDate, setSelectedDate, !!selectedMovie, 'date')}
 
             {/* Time Dropdown */}
-            {renderDropdown('3. Choose Showtime', timeOptions, selectedTime, setSelectedTime, !!selectedDate, 'time')}
+            {renderDropdown(t('buy_ticket.step_thrid'), timeOptions, selectedTime, setSelectedTime, !!selectedDate, 'time')}
 
             {/* Book Button */}
             <button
@@ -151,13 +156,13 @@ export default function ContactPage() {
               disabled={!(selectedMovie && selectedDate && selectedTime)}
               onClick={handleBuyTicketFast}
             >
-              BOOK NOW
+              {t('buy_ticket.button')}
             </button>
           </div>
 
           {/* Currently Showing Movies Text */}
           <h2 className="text-blue-800 text-3xl md:text-4xl font-extrabold text-center tracking-wide">
-            CURRENTLY SHOWING MOVIES
+            {t('buy_ticket.movies_showing')}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mt-10">
             {visibleMovies && visibleMovies.map((movie, index) => (
@@ -202,7 +207,7 @@ export default function ContactPage() {
                     <button 
                     className="bg-yellow-400 text-black text-sm font-bold py-1 px-4 rounded hover:bg-yellow-500"
                     >
-                        ĐẶT VÉ
+                        {t('buy_ticket.movies_button')}
                     </button>
                     </div>
                 </div>
@@ -215,7 +220,7 @@ export default function ContactPage() {
                 className="bg-yellow-400 text-black font-bold py-2 px-6 rounded hover:bg-yellow-500 transition"
                 onClick={() => setShowAll(true)}
                 >
-                XEM THÊM
+                {t('buy_ticket.movies_button_2')}
                 </button>
             </div>
             )}
@@ -224,4 +229,12 @@ export default function ContactPage() {
       <Footer />
     </Layout>
   )
+}
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common'])),
+    },
+  };  
 }

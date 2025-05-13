@@ -2,6 +2,7 @@ import MainLayout from "@/components/LayoutEvent";
 import { getEventById } from "@/utils/https/events";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 export default function EventDetail() {
   const controller = useMemo(() => new AbortController(), []);
@@ -55,4 +56,16 @@ export default function EventDetail() {
       </div>
     </MainLayout>
   );
+}
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common', 'signup'])),
+    },
+  };  
+}
+
+export async function getStaticPaths() {
+  return { paths: [], fallback: 'blocking' };
 }

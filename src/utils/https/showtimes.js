@@ -2,8 +2,9 @@ import axios from "axios";
 
 const baseUrl = process.env.NEXT_PUBLIC_ANALYTICS_ID;
 
-export const getShowTimeByMovieId = (movie_id, controller) => {
-    const url = `${baseUrl}/v1/api/showtimes/movies/${movie_id}`;
+export const getShowTimeByMovieId = (movie_id, show_date, controller) => {
+    console.log("show_date : ", show_date)
+    const url = `${baseUrl}/v1/api/showtimes/movies/${movie_id}?show_date=${show_date}`;    
     return axios.get(url, { signal: controller.signal });
 };
 

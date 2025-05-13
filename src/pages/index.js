@@ -7,7 +7,7 @@ import { useDispatch } from 'react-redux';
 
 
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, EffectCoverflow, Navigation, Pagination } from 'swiper/modules';
+import { EffectCoverflow, Navigation } from 'swiper/modules';
 
 import 'swiper/css';
 import 'swiper/css/effect-coverflow';
@@ -17,21 +17,21 @@ import 'swiper/css/pagination';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import Layout from '@/components/Layout';
-import { orderAction } from '@/redux/slice/order';
 import { getMovies } from '@/utils/https/movies';
 import { getEvents } from '@/utils/https/events';
 
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
+
+
 function Home({ movies, events, error }) {
-  const dispatch = useDispatch();
+  const { t } = useTranslation('common');
   const router = useRouter();
   const handleNavigate = (url) => router.push(url);
   const addMovie = (id, name) => {
-    // const payload = { id: id, name: name };
-    // dispatch(orderAction.addMovieId(payload));
     handleNavigate(`/movies/${id}`);
   };
 
-  const [email, setEmail] = useState("");
   const [activeIndex, setActiveIndex] = useState(0)
   const [movieStatus, setMovieStatus] = useState("now-showing");
   const [movieList, setMovieList] = useState(movies || []);
@@ -51,20 +51,6 @@ function Home({ movies, events, error }) {
   
     return () => controller.abort();
   }, [movieStatus]);
-  
-  const submitHandler = (e) => {
-    e.preventDefault();
-    router.push(
-      {
-        pathname: "/signup",
-        query: {
-          email,
-        },
-      },
-      "/signup"
-    );
-    console.log(email);
-  };
 
   return (
     <Layout>
@@ -75,14 +61,14 @@ function Home({ movies, events, error }) {
           <div className="min-h-screen flex flex-col md:flex-row pt-28 md:pt-0 gap-5 w-full md:items-center md:gap-10 lg:gap-40">
             <div className="md:flex-1 flex  flex-col gap-2 md:gap-4">
               <p className="text-primary-placeholder text-base md:text-2xl">
-                Nearest Cinema, Newest Movie,
+                {t("title_banner_first")}
               </p>
               <p className="font-bold text-primary text-3xl md:text-[3.5rem]">
-                Find out now!
+                {t("title_banner_second")}
               </p>
             </div>
             <div className="flex-1 flex gap-7 relative scale-90 md:scale-100">
-              <div className="w-28 h-96 relative top-20 rounded-xl bg-black shadow-movie-landing-hero">
+              {/* <div className="w-28 h-96 relative top-20 rounded-xl bg-black shadow-movie-landing-hero">
                 <Image
                   src={"/images/movies/movie-1.png"}
                   alt="spiderman"
@@ -109,14 +95,33 @@ function Home({ movies, events, error }) {
                   className="object-cover rounded-xl opacity-75"
                   sizes="100kb"
                 />
-              </div>
+              </div> */}
+              {movieList.slice(0, 3).map((movie, index) => {
+
+                // Tạo hiệu ứng top tương tự từng ảnh
+                const topOffset = [20, 10, -2]; // giống như top-20, top-10, -top-2
+                return (
+                  <div
+                    key={index}
+                    className={`w-28 h-96 relative top-${topOffset[index]} rounded-xl bg-black shadow-movie-landing-hero`}
+                  >
+                    <Image
+                      src={movie.movie_image_url || "/images/avatar-2-movie.jpg"}
+                      alt={movie.movie_title}
+                      fill
+                      className="object-cover rounded-xl opacity-75"
+                      sizes="100kb"
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
         <section className="mw-global global-px bg-accent min-h-16 py-10">
           <div className="flex justify-between text-primary py-5">
             <div className="flex items-center gap-8 border-l-4 border-blue-500 pl-4">
-              <p className="font-bold text-2xl">Movies</p>
+              <p className="font-bold text-2xl">{t("title_movie")}</p>
               <div className="flex gap-8">
                 <div
                   onClick={() => setMovieStatus("now-showing")}
@@ -124,7 +129,7 @@ function Home({ movies, events, error }) {
                     movieStatus === "now-showing" ? "text-primary" : "text-black"
                   }`}
                 >
-                  <p className="translate-y-1">Now Showing</p>
+                  <p className="translate-y-1">{t("title_movie_now_showing")}</p>
                   {movieStatus === "now-showing" && (
                     <div className="h-[3px] w-[65%] bg-primary mx-auto rounded-lg" />
                   )}
@@ -135,7 +140,7 @@ function Home({ movies, events, error }) {
                     movieStatus === "upcoming-movies" ? "text-primary" : "text-black"
                   }`}
                 >
-                  <p className="translate-y-1">Upcomming</p>
+                  <p className="translate-y-1">{t("title_movie_up_comming")}</p>
                   {movieStatus === "upcoming-movies" && (
                     <div className="h-[3px] w-[65%] bg-primary mx-auto rounded-lg" />
                   )}
@@ -144,7 +149,7 @@ function Home({ movies, events, error }) {
             </div>
             <div className="">
               <Link href={"/movies"} className="font-bold">
-                view all
+                {t("title_movie_more")}
               </Link>
             </div>
           </div>
@@ -217,11 +222,11 @@ function Home({ movies, events, error }) {
         <section className="mw-global global-px pt-16 bg-white">
           <div className="flex justify-between text-primary py-5">
             <div className="border-l-4 border-blue-500 pl-4 font-bold text-2xl flex flex-col gap-3 text-primary-title">
-              <p>EVENT</p>
+              <p>{t("title_event")}</p>
             </div>
             <div className="">
-              <Link href={"/movies"} className="font-bold">
-                view all
+              <Link href={"/events"} className="font-bold">
+                {t("title_event_more")}
               </Link>
             </div>
           </div>
@@ -258,7 +263,7 @@ function Home({ movies, events, error }) {
         <div className="max-w-6xl mx-auto p-4">
           <div className="grid md:grid-cols-3 gap-4">
             {/* Hiển thị featured event đầu tiên */}
-            {events.length > 0 && (
+            {events && events.length > 0 && (
               <div className="md:col-span-2 cursor-pointer" onClick={() => router.push(`/events/${events[0].ID }`)}>
                 <Image
                   src={events[0].EventImageUrl}
@@ -274,7 +279,7 @@ function Home({ movies, events, error }) {
 
             {/* Danh sách các event còn lại */}
             <div className="space-y-4">
-              {events.slice(1).map((event, index) => (
+              {events && events.slice(1).map((event, index) => (
                 <div 
                 key={index} 
                 className="flex space-x-2 h-[140px] cursor-pointer border-b pb-2"
@@ -300,7 +305,7 @@ function Home({ movies, events, error }) {
               className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition"
               onClick={() => handleNavigate("/events")}
               >
-                Xem thêm
+                {t("title_event_more_button")}
               </button>
             </div>
           </div>
@@ -311,7 +316,7 @@ function Home({ movies, events, error }) {
   );
 }
 
-export async function getStaticProps() {
+export async function getStaticProps({ locale }) {
   const controller = new AbortController();
 
   let movies = [];
@@ -337,8 +342,9 @@ export async function getStaticProps() {
       movies,
       events,
       error,
+      ...(await serverSideTranslations(locale, ['common'])),
     },
-  };
+  };  
 }
 
 
