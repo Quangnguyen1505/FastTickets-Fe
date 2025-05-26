@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
+import debounce from 'lodash/debounce';
 
 import Logout from './Logout';
 import SearchBar from './SearchBar';
@@ -12,6 +13,8 @@ import { usersAction } from '@/redux/slice/users';
 
 import { useTranslation } from 'next-i18next';
 import { getNotifications } from '@/utils/https/notification';
+import useSocket from '@/hook/useSocket';
+import { getMovies } from '@/utils/https/movies';
 
 function Header() {
   const { t } = useTranslation('common');
@@ -46,6 +49,32 @@ function Header() {
   const [notifications, setNotifications] = useState([]);
   const notificationCount = notifications.length;
 
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const moviesController = useMemo(
+    () => new AbortController(),
+    [search]
+  );
+
+  const backendNotificationUrl = process.env.NEXT_PUBLIC_BACKEND_NOTIFICATION_URL || "http://localhost:8001";
+  const { socket, messages: receivedMessages } = useSocket(backendNotificationUrl, "/socket.io", "notification");
+  useEffect(() => {
+    if (receivedMessages.length === 0) return;
+
+    const latestMessage = receivedMessages[receivedMessages.length - 1];
+
+    setNotifications((prevNotifications) => [
+      {
+        id: Math.random().toString(36).slice(2), // Tạo ID ngẫu nhiên
+        content: latestMessage.content,
+        type: latestMessage.type,
+        createdAt: new Date(latestMessage.createdAt),
+        options: latestMessage.options || {},
+      },
+      ...prevNotifications,
+    ]);
+  }, [receivedMessages]);
 
   useEffect(() => {
       const handleProfileUpdate = () => {
@@ -87,7 +116,7 @@ function Header() {
       const fetchNotifications = async () => {
         try {
           const res = await getNotifications(userId, token, controller);
-          console.log("res ", res);
+          console.log("res noti", res);
           if (res.data && res.data.metadata && res.data.metadata.notifications) {
             setNotifications(res.data.metadata.notifications.map(noti => ({
               id: noti.id,
@@ -133,10 +162,59 @@ function Header() {
 
   const handleNotificationClick = (notification) => {
     console.log("notification ", notification);
-    if (notification.type === "NEWS") {
-      router.push(`movies/${notification.options.id}`);
+    const typeNotiPath = {
+      Movies: '/movies',
+      Events: '/events',
+      Profile: '/profile/history'
+    };
+    if (notification.type === "MOVIE") {
+      router.push(`${typeNotiPath.Movies}/${notification.options.id}`);
     }
-  };  
+    else if (notification.type === "EVENT") {
+      router.push(`${typeNotiPath.Events}/${notification.options.id}`);
+    }
+    else if (notification.type === "BOOKING") {
+      router.push(typeNotiPath.Profile);
+    }
+  };
+
+  const searchMovies = debounce(async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    
+    try {
+      console.log('Searching for:', query);
+      const params = {
+        limit: 100,
+        page: 1,
+        search: query,
+      }
+      const res = await getMovies(params, moviesController);
+      setSearchResults(res.data.metadata);
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  }, 500);
+
+  useEffect(() => {
+    if (search) {
+      setIsSearching(true);
+      searchMovies(search);
+    } else {
+      setSearchResults([]);
+      setIsSearching(false);
+    }
+  }, [search]);
+
+  useEffect(() => {
+    return () => {
+      searchMovies.cancel();
+    };
+  }, []);
 
   return (
     <>
@@ -283,6 +361,41 @@ function Header() {
                   setValue={setSearch}
                   className="w-52"
                 />
+
+                {search && (
+                  <div className="mt-2 w-64 max-h-96 overflow-y-auto">
+                    {isSearching ? (
+                      <div className="p-4 text-center">
+                        <span className="loading loading-spinner text-primary"></span>
+                      </div>
+                    ) : searchResults.length > 0 ? (
+                      searchResults.map((movie) => (
+                        <Link
+                          key={movie.id}
+                          href={`/movies/${movie.id}`}
+                          className="flex items-center p-3 hover:bg-gray-100 transition-colors gap-3"
+                          onClick={() => setSearchBar(false)}
+                        >
+                          <img 
+                            src={movie.movie_image_url || "/images/avatar-2-movie.jpg"} 
+                            alt={movie.movie_title}
+                            className="w-10 h-14 object-cover rounded" 
+                          />
+                          <div>
+                            <p className="font-medium text-sm">{movie.movie_title}</p>
+                            {/* <p className="text-xs text-gray-500">
+                              {movie.genres.join(', ')}
+                            </p> */}
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <div className="p-3 text-gray-500 text-sm">
+                        Không tìm thấy kết quả
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             {user.isFulfilled && (

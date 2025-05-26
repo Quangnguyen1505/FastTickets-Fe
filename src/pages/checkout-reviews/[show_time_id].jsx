@@ -9,13 +9,19 @@ import { useSelector } from "react-redux";
 import { getCheckout } from "@/utils/https/booking";
 import { checkStatusPayment, genUrlPaymentMomo } from "@/utils/https/payment";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { getAllVouchersByUserId } from "@/utils/https/voucher";
 
 export default function CheckoutReviews() {
   const router = useRouter();
   const orderStore = useSelector((state) => state.order);
   const controller = useMemo(() => new AbortController(), []);
   const { show_time_id } = router.query;
+
   const [checkouts, setCheckouts] = useState([]);
+  const [selectedVoucher, setSelectedVoucher] = useState(null);
+  const [userVouchers, setUserVouchers] = useState([]);
+  const [showVoucherPopup, setShowVoucherPopup] = useState(false);
+
   const [paymentMethod, setPaymentMethod] = useState("momo");
   const userStore = useSelector((state) => state.user.data);
   const accessToken = userStore.tokens?.accessToken;
@@ -34,11 +40,42 @@ export default function CheckoutReviews() {
     fetchShowTimes();
   }, [show_time_id])
 
+  useEffect(() => {
+    const fetchUpdatedCheckout = async () => {
+        if (!show_time_id || !orderStore?.user_order || !orderStore?.snacks_order) return;
+
+        try {
+            const discount_id = selectedVoucher?.id || null;
+            const res = await getCheckout(show_time_id, orderStore?.user_order, orderStore?.snacks_order, controller, discount_id);
+            setCheckouts(res.data.metadata);
+        } catch (err) {
+            console.error("Lỗi cập nhật thông tin thanh toán sau khi chọn voucher:", err);
+        }
+    };
+
+    fetchUpdatedCheckout();
+  }, [selectedVoucher]);
+
+  useEffect(() => {
+    const fetchVouchers = async () => {
+        try {
+            const response = await getAllVouchersByUserId(userId, accessToken);
+            setUserVouchers(response.metadata.discounts);
+        } catch (error) {
+            console.error("Error fetching vouchers:", error);
+        }
+    };
+    if (userId && accessToken) {
+        fetchVouchers();
+    }
+  }, [userId, accessToken]);
+
   const handleBooking = async () => {
     const data = {
         show_time_id: checkouts.showtime?.show_time_id,
         user_order: orderStore?.user_order,
-        snacks_order: orderStore?.snacks_order
+        snacks_order: orderStore?.snacks_order,
+        discount_id: selectedVoucher?.id || null,
     };
     console.log("data ", data);
     try {
@@ -50,7 +87,8 @@ export default function CheckoutReviews() {
                 data.show_time_id, 
                 data.user_order, 
                 data.snacks_order,
-                controller
+                controller,
+                selectedVoucher?.id ?? null
             );
             const url = res.data.metadata.payUrl;
             console.log("paymentMethod ", url);
@@ -104,53 +142,106 @@ export default function CheckoutReviews() {
                             Tổng: {checkouts.checkoutPrice}vn₫
                         </p>
 
-                        {/* Chọn phương thức thanh toán */}
-                        <div>
-                        <label className="block mb-1 font-medium text-gray-700">
-                            Phương thức thanh toán:
-                        </label>
-                        <div className="grid grid-cols-2 gap-4">
+                        {/* Chọn voucher */}
+                        {/* Nút chọn voucher */}
+                        <div className="mt-4">
+                            <label className="block mb-1 font-medium text-gray-700">
+                                Chọn voucher giảm giá:
+                            </label>
                             <button
-                            onClick={() => setPaymentMethod("momo")}
-                            className={`px-4 py-2 rounded-lg border ${
-                                paymentMethod === "momo"
-                                ? "bg-pink-500 text-white border-pink-500"
-                                : "bg-white text-gray-700 border-gray-300"
-                            }`}
+                                onClick={() => setShowVoucherPopup(true)}
+                                className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition"
                             >
-                            Ví MoMo
-                            </button>
-                            <button
-                            onClick={() => setPaymentMethod("zalo")}
-                            className={`px-4 py-2 rounded-lg border ${
-                                paymentMethod === "zalo"
-                                ? "bg-blue-500 text-white border-blue-500"
-                                : "bg-white text-gray-700 border-gray-300"
-                            }`}
-                            >
-                            ZaloPay
-                            </button>
-                            <button
-                            onClick={() => setPaymentMethod("atm")}
-                            className={`px-4 py-2 rounded-lg border ${
-                                paymentMethod === "atm"
-                                ? "bg-green-500 text-white border-green-500"
-                                : "bg-white text-gray-700 border-gray-300"
-                            }`}
-                            >
-                            Thẻ ATM
-                            </button>
-                            <button
-                            onClick={() => setPaymentMethod("credit")}
-                            className={`px-4 py-2 rounded-lg border ${
-                                paymentMethod === "credit"
-                                ? "bg-yellow-500 text-white border-yellow-500"
-                                : "bg-white text-gray-700 border-gray-300"
-                            }`}
-                            >
-                            Thẻ Tín Dụng
+                                {selectedVoucher ? selectedVoucher.discount_name : "Chọn voucher"}
                             </button>
                         </div>
+                        {showVoucherPopup && (
+                            <div className="fixed inset-0 z-50 bg-black bg-opacity-30 flex items-center justify-center">
+                                <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-lg">
+                                <h3 className="text-lg font-semibold mb-4">Chọn Voucher</h3>
+                                <div className="max-h-60 overflow-y-auto space-y-3">
+                                    {userVouchers.length === 0 ? (
+                                    <p className="text-sm text-gray-400">Bạn chưa có voucher nào.</p>
+                                    ) : (
+                                    userVouchers.map((voucher) => (
+                                        <div
+                                        key={voucher.id}
+                                        className={`cursor-pointer border rounded-lg p-3 hover:border-primary transition-all ${
+                                            selectedVoucher?.id === voucher.id ? "border-primary bg-primary/10" : "border-gray-300"
+                                        }`}
+                                        onClick={() => {
+                                            setSelectedVoucher(voucher);
+                                            setShowVoucherPopup(false);
+                                        }}
+                                        >
+                                        <p className="text-sm font-semibold text-primary">{voucher.discount_name}</p>
+                                        <p className="text-xs text-gray-500">{voucher.discount_description}</p>
+                                        <p className="text-xs text-gray-400">
+                                            HSD: {new Date(voucher.discount_end_date).toLocaleDateString("vi-VN")}
+                                        </p>
+                                        </div>
+                                    ))
+                                    )}
+                                </div>
+                                <div className="text-right pt-4">
+                                    <button
+                                    onClick={() => setShowVoucherPopup(false)}
+                                    className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+                                    >
+                                    Đóng
+                                    </button>
+                                </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Chọn phương thức thanh toán */}
+                        <div>
+                            <label className="block mb-1 font-medium text-gray-700">
+                                Phương thức thanh toán:
+                            </label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button
+                                onClick={() => setPaymentMethod("momo")}
+                                className={`px-4 py-2 rounded-lg border ${
+                                    paymentMethod === "momo"
+                                    ? "bg-pink-500 text-white border-pink-500"
+                                    : "bg-white text-gray-700 border-gray-300"
+                                }`}
+                                >
+                                Ví MoMo
+                                </button>
+                                <button
+                                onClick={() => setPaymentMethod("zalo")}
+                                className={`px-4 py-2 rounded-lg border ${
+                                    paymentMethod === "zalo"
+                                    ? "bg-blue-500 text-white border-blue-500"
+                                    : "bg-white text-gray-700 border-gray-300"
+                                }`}
+                                >
+                                ZaloPay
+                                </button>
+                                <button
+                                onClick={() => setPaymentMethod("atm")}
+                                className={`px-4 py-2 rounded-lg border ${
+                                    paymentMethod === "atm"
+                                    ? "bg-green-500 text-white border-green-500"
+                                    : "bg-white text-gray-700 border-gray-300"
+                                }`}
+                                >
+                                Thẻ ATM
+                                </button>
+                                <button
+                                onClick={() => setPaymentMethod("credit")}
+                                className={`px-4 py-2 rounded-lg border ${
+                                    paymentMethod === "credit"
+                                    ? "bg-yellow-500 text-white border-yellow-500"
+                                    : "bg-white text-gray-700 border-gray-300"
+                                }`}
+                                >
+                                Thẻ Tín Dụng
+                                </button>
+                            </div>
                         </div>
 
                         {/* Nút xác nhận */}

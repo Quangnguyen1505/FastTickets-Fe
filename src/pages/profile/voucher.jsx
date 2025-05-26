@@ -7,37 +7,55 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Layout from "@/components/Layout";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useEffect, useState } from "react";
+import { claimVoucher, getAllVouchers, getAllVouchersByUserId } from "@/utils/https/voucher";
+import { handleClientScriptLoad } from "next/script";
 
 function Voucher() {
   const userStore = useSelector((state) => state.user.data);
+  const token = userStore.tokens?.accessToken;
+  const userId = userStore.shop?.id;
   const image = userStore.image;
   const firstName = userStore.first_name;
   const lastName = userStore.last_name;
 
-  // ✅ Gán tĩnh danh sách voucher
-  const voucherList = [
-    {
-      id: 1,
-      title: "Giảm 50%",
-      description: "Áp dụng cho tất cả các vé 2D",
-      code: "GIAM50",
-      expiry_date: "2025-12-31",
-    },
-    {
-      id: 2,
-      title: "Giảm 30k",
-      description: "Cho đơn hàng từ 150k trở lên",
-      code: "30KOFF",
-      expiry_date: "2025-10-01",
-    },
-    {
-      id: 3,
-      title: "Tặng Combo Bắp + Nước",
-      description: "Khi đặt vé vào thứ 3 hàng tuần",
-      code: "COMBOTUE",
-      expiry_date: "2025-08-15",
-    },
-  ];
+  const [voucherUser, setVoucherUser] = useState([]);
+  const [voucherShop, setVoucherShop] = useState([]);
+
+  useEffect(() => {
+    const fetchAllVouchers = async () => {
+      try {
+        const response = await getAllVouchersByUserId(userId, token);
+        console.log("Vouchers:", response);
+
+        const responseAllVoucher = await getAllVouchers(userId, token);
+        console.log("Vouchers shop:", responseAllVoucher);
+
+        setVoucherShop(responseAllVoucher.metadata.discounts);
+        setVoucherUser(response.metadata.discounts);
+      } catch (error) {
+        console.error("Error fetching vouchers:", error);
+      }
+    };
+    fetchAllVouchers();
+  }, [userId, token]);
+
+  const handleClaimsVoucher = async (voucherId) => {
+    try {
+      const response = await claimVoucher(userId, token, voucherId);
+      console.log("Claim response:", response);
+
+      // Tìm voucher vừa nhận từ danh sách voucherShop
+      const claimedVoucher = voucherShop.find(v => v.id === voucherId);
+      if (!claimedVoucher) return;
+
+      // Cập nhật lại hai state
+      setVoucherShop(prev => prev.filter(v => v.id !== voucherId));
+      setVoucherUser(prev => [...prev, claimedVoucher]);
+    } catch (error) {
+      console.error("Error claiming voucher:", error);
+    }
+  };
 
   return (
     <Layout title={"Voucher Wallet"}>
@@ -107,35 +125,74 @@ function Voucher() {
               </div>
             </div>
 
-            {voucherList.length === 0 ? (
-              <p className="text-center text-gray-400 mt-10">
+            {/* User Vouchers */}
+            <h2 className="text-xl font-semibold mb-4">Voucher của bạn</h2>
+            {voucherUser.length === 0 ? (
+              <p className="text-center text-gray-400 mt-4">
                 Bạn chưa có voucher nào.
               </p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {voucherList.map((voucher) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                {voucherUser.map((voucher) => (
                   <div
                     key={voucher.id}
                     className="border rounded-xl p-6 shadow-sm bg-gradient-to-r from-white to-slate-50"
                   >
                     <h3 className="text-lg font-semibold text-primary mb-1">
-                      {voucher.title}
+                      {voucher.discount_name}
                     </h3>
                     <p className="text-sm text-gray-600 mb-2">
-                      {voucher.description}
+                      {voucher.discount_description}
                     </p>
                     <div className="flex items-center justify-between mt-4">
                       <span className="font-mono text-sm bg-slate-100 px-2 py-1 rounded border border-slate-300">
-                        {voucher.code}
+                        {voucher.discount_code}
                       </span>
                       <span className="text-xs text-gray-400">
-                        HSD: {voucher.expiry_date}
+                        HSD: {new Date(voucher.discount_end_date).toLocaleDateString("vi-VN")}
                       </span>
                     </div>
                   </div>
                 ))}
               </div>
             )}
+
+            {/* Divider line */}
+            <hr className="border-t border-gray-300 my-8" />
+
+            {/* Shop Vouchers */}
+            <h2 className="text-xl font-semibold mb-4">Voucher từ cửa hàng</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {voucherShop.map((voucher) => (
+                <div
+                  key={voucher.id}
+                  className="border rounded-xl p-6 shadow-sm bg-gradient-to-r from-white to-slate-50 flex flex-col justify-between"
+                >
+                  <div>
+                    <h3 className="text-lg font-semibold text-green-600 mb-1">
+                      {voucher.discount_name}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {voucher.discount_description}
+                    </p>
+                    <div className="flex items-center justify-between mt-4">
+                      <span className="font-mono text-sm bg-slate-100 px-2 py-1 rounded border border-slate-300">
+                        {voucher.discount_code}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        HSD: {new Date(voucher.discount_end_date).toLocaleDateString("vi-VN")}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    className="mt-6 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md text-sm transition"
+                    onClick={() => handleClaimsVoucher(voucher.id)}
+                  >
+                    Nhận
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </main>

@@ -23,6 +23,8 @@ import { getEvents } from '@/utils/https/events';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
 
+import useSocket from "@/hook/useSocket";
+import ChatbotUI from '@/components/Chatbot';
 
 function Home({ movies, events, error }) {
   const { t } = useTranslation('common');
@@ -51,6 +53,12 @@ function Home({ movies, events, error }) {
   
     return () => controller.abort();
   }, [movieStatus]);
+
+  // const { socket, messages: receivedMessages } = useSocket("http://localhost:8001", "/socket.io", "message");
+  // useEffect(() => {
+  //   console.log("socket", socket);
+  //   console.log("receivedMessages hhh", receivedMessages);
+  // }, [socket]);
 
   return (
     <Layout>
@@ -312,6 +320,7 @@ function Home({ movies, events, error }) {
         </div>
       </main>
       <Footer />
+      <ChatbotUI />
     </Layout>
   );
 }
@@ -342,7 +351,7 @@ export async function getStaticProps({ locale }) {
       movies,
       events,
       error,
-      ...(await serverSideTranslations(locale, ['common'])),
+      ...(await serverSideTranslations(locale, ['common', 'auth'])),
     },
   };  
 }

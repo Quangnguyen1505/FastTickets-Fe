@@ -95,6 +95,18 @@ export default function ContactPage() {
                   </div>
                 </div>
               </div>
+              <div className="mt-4 aspect-video bg-gray-200 rounded-lg overflow-hidden">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.2426872763162!2d106.7014633796137!3d10.79271556191487!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3175299a2a7aeb89%3A0xfe75f3431d8fd812!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBUaOG7p3kgbOG7o2kgLSBQaMOibiBoaeG7h3UgTWnhu4FuIE5hbQ!5e0!3m2!1svi!2sus!4v1748010359490!5m2!1svi!2sus"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Bản đồ địa chỉ cửa hàng Street Style"
+                ></iframe>
+              </div>
             </div>
 
             {/* Contact Form */}

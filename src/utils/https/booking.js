@@ -2,10 +2,11 @@ import axios from "axios";
 
 const baseUrl = process.env.NEXT_PUBLIC_ANALYTICS_ID;
 
-export const getCheckout = (show_time_id, user_order, snacks_order, controller) => {
+export const getCheckout = (show_time_id, user_order, snacks_order, controller, discount_id = null) => {
     const body = {
         user_order,
-        snacks_order
+        snacks_order,
+        discount_id
     }
     const url = `${baseUrl}/v1/api/bookings/checkout/${show_time_id}`;
     return axios.post(url, body, 
