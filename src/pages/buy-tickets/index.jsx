@@ -64,16 +64,18 @@ export default function ContactPage() {
   // Fetch showtimes when movie selected
   useEffect(() => {
     const fetchShowtimes = async () => {
+      if (!selectedDate) return;
       if (selectedMovie?.id) {
         console.log("selectedDate : ", selectedDate)
         const apiDate = convertToAPIDateFormat(selectedDate);
+        console.log("apiDate : ", apiDate)
         const res = await getShowTimeByMovieId(selectedMovie.id, apiDate, controller)
         const times = res.data.metadata.map(item => item.start_time)
         setTimeOptions(times)
       }
     }
     if (selectedMovie) fetchShowtimes()
-  }, [selectedMovie])
+  }, [selectedMovie, selectedDate])
   
 
   const dropdownStyle =
@@ -200,9 +202,9 @@ export default function ContactPage() {
                     <div className="mt-2 flex items-center justify-between gap-2">
                     <a
                         href={movie.trailerUrl}
-                        className="text-white text-sm flex items-center gap-1 hover:underline"
+                        className="text-white text-sm flex items-center gap-1"
                     >
-                        <span className="text-red-500">🔴</span> Xem Trailer
+                        <span className="text-red-500">🔴</span> Trailer
                     </a>
                     <button 
                     className="bg-yellow-400 text-black text-sm font-bold py-1 px-4 rounded hover:bg-yellow-500"

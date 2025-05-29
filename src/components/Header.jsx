@@ -47,7 +47,7 @@ function Header() {
 
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
-  const notificationCount = notifications.length;
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -74,6 +74,8 @@ function Header() {
       },
       ...prevNotifications,
     ]);
+    setNotificationCount((prevCount) => prevCount + 1);
+    console.log("noti count:", notificationCount);
   }, [receivedMessages]);
 
   useEffect(() => {
@@ -105,8 +107,10 @@ function Header() {
               phone = null;
             }
 
+            let point = userData.usr_point;
+
             const email = userData.usr_email;
-            dispatch(usersAction.setProfile({first_name, last_name, email, image, phone})); 
+            dispatch(usersAction.setProfile({first_name, last_name, email, image, phone, point})); 
           }
         } catch (error) {
           console.error("error get profile:", error);
@@ -402,7 +406,10 @@ function Header() {
               <div className="relative">
                 <button 
                   className="flex items-center p-2 hover:bg-gray-100 rounded-full relative transition-colors"
-                  onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                  onClick={() => {
+                    setIsNotificationOpen(!isNotificationOpen);
+                    setNotificationCount(0);
+                  }}
                 >
                   <svg 
                     width="24" 

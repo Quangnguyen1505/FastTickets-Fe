@@ -26,19 +26,25 @@ function Voucher() {
     const fetchAllVouchers = async () => {
       try {
         const response = await getAllVouchersByUserId(userId, token);
-        console.log("Vouchers:", response);
-
         const responseAllVoucher = await getAllVouchers(userId, token);
-        console.log("Vouchers shop:", responseAllVoucher);
 
-        setVoucherShop(responseAllVoucher.metadata.discounts);
-        setVoucherUser(response.metadata.discounts);
+        const userVouchers = response?.metadata?.discounts || [];
+        const allShopVouchers = responseAllVoucher?.metadata?.discounts || [];
+
+        const userVoucherIds = new Set(userVouchers.map(v => v.id));
+        const filteredShopVouchers = allShopVouchers.filter(v => !userVoucherIds.has(v.id));
+
+        setVoucherUser(userVouchers);
+        setVoucherShop(filteredShopVouchers);
       } catch (error) {
         console.error("Error fetching vouchers:", error);
       }
     };
-    fetchAllVouchers();
+    if (userId && token) {
+      fetchAllVouchers();
+    }
   }, [userId, token]);
+
 
   const handleClaimsVoucher = async (voucherId) => {
     try {

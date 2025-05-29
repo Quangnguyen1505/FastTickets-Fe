@@ -228,7 +228,7 @@ function MovieDetails() {
                 <div className="flex flex-col md:flex-row gap-14">
                   <div className="max-w-[283px]">
                     <div className="p-5 border border-primary rounded-2xl">
-                      <div className="w-60 h-[22.5rem] relative">
+                      <div className="w-60 h-[22.5rem] relative cursor-pointer">
                         <Image
                           src={dataMovie.movie_image_url || placeholder}
                           alt="img-movie"
@@ -245,7 +245,9 @@ function MovieDetails() {
                 
                     <div className="flex flex-row flex-wrap gap-2">
                       {dataMovie.movie_categories?.map((cate) => (
-                        <span key={cate.cate_id} className="text-[#4E4B66] text-lg">
+                        <span 
+                        key={cate.cate_id} 
+                        className="px-3 py-1 border border-gray-300 hover:border-orange-500 text-black rounded-xl font-medium transition-colors cursor-pointer">
                           {cate.category?.cate_name || "category"}
                         </span>
                       ))}
@@ -254,24 +256,24 @@ function MovieDetails() {
                     {/* <p className="text-[#4E4B66] text-lg">
                       {dataMovie.movie_categories.category.cate_name || "category"}
                     </p> */}
-                    <div className="mt-8">
+                    <div className="mt-6">
                       <p className="text-[#8692A6] text-sm">Release date</p>
                       <p className="text-base">{`${dataMovie.movie_release_date}` || "don't update"}</p>
                     </div>
-                    <div className="mt-8">
+                    <div className="mt-6">
                       <p className="text-[#8692A6] text-sm">Duration</p>
                       <p className="text-base">
                         {`${dataMovie.movie_time} minutes` ||
                           "0 minutes"}
                       </p>
                     </div>
-                    <div className="mt-8">
+                    <div className="mt-6">
                       <p className="text-[#8692A6] text-sm">Directed by</p>
                       <p className="text-base">
                         {dataMovie.movie_director || "director"}
                       </p>
                     </div>
-                    <div className="mt-8">
+                    <div className="mt-6">
                       <p className="text-[#8692A6] text-sm">Casts</p>
                       <p className="text-base">
                         {dataMovie.movie_performer || "actors"}
@@ -279,14 +281,14 @@ function MovieDetails() {
                     </div>
                   </div>
                 </div>
-                <div className="mt-14">
+                <div className="mt-8">
                   <h2 className="font-semibold text-xl">Movie content</h2>
                   <p className="text-base">
                     {dataMovie.movie_content || "synopsis"}
                   </p>
                 </div>
               </div>
-              <div className="flex flex-col items-center mt-16">
+              <div className="flex flex-col items-center mt-11">
                 <h1 className="text-2xl font-bold">Showtimes and Tickets</h1>
                 <div className="flex items-center mt-10 gap-6">
                   <div className="form-control flex-1">
@@ -337,7 +339,7 @@ function MovieDetails() {
                         </div>
                       ))
                     ) : (
-                      <div className="text-gray-600 font-medium italic">
+                      <div className="text-gray-600 font-medium italic text-center w-full">
                         Currently, there are no showtimes available for this date.
                       </div>
                     )}

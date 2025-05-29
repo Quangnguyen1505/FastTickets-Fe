@@ -63,6 +63,7 @@ const authSlice = createSlice({
           email: action.payload.email,
           image: action.payload.image,
           phone: action.payload.phone,
+          points: action.payload.point || 0,
         },
       };
     },

@@ -232,7 +232,7 @@ function Profile() {
                 <div className="w-[80%] md:w-[45%] lg:w-full md:h-52 lg:h-full bg-gradient-to-r from-primary to-primary/80 bg-gradient-to-right-top px-4 py-6 rounded-lg text-white">
                   <p>Moviegoers</p>
                   <p className="text-2xl mt-5">
-                    0 <span className="text-xs">points</span>
+                    {userStore.points} <span className="text-xs">points</span>
                   </p>
                 </div>
                 <p className="mt-8">300 points become a master</p>
