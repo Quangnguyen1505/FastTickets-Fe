@@ -1,3 +1,4 @@
+import Image from "next/image";
 import QRCode from "qrcode-generator";
 import { useEffect, useRef, useState } from "react";
 
@@ -17,7 +18,16 @@ export default function QRCodeGenerator({ data }) {
 
   return (
     <div className="flex flex-col items-center mt-4">
-      <img ref={imgRef} src={qrDataUrl} alt="QR Code" className="w-40 h-40" />
+      {/* <img ref={imgRef} src={qrDataUrl} alt="QR Code" className="w-40 h-40" /> */}
+      <Image
+        ref={imgRef}
+        src={qrDataUrl}
+        alt="QR Code"
+        width={160}
+        height={160}
+        className="w-40 h-40"
+        unoptimized // For data URLs, always use unoptimized
+      />
       <a
         href={qrDataUrl}
         download="ticket-qr.png"

@@ -43,7 +43,7 @@ function Home({ movies, events, error }) {
     const fetchMovies = async () => {
       try {
         const res = await getMovies({ limit: 10, page: 1, movieStatus }, controller);
-        setMovieList(res.data.metadata || []);
+        setMovieList(res.data.metadata.movies || []);
       } catch (err) {
         console.error("Failed to fetch movies", err.message);
       }
@@ -334,7 +334,7 @@ export async function getStaticProps({ locale }) {
 
   try {
     const movieRes = await getMovies({ limit: 10, page: 1, movieStatus: "now-showing" }, controller);
-    movies = movieRes.data.metadata || [];
+    movies = movieRes.data.metadata.movies || [];
   } catch (err) {
     error = `Movies error: ${err.message}`;
   }

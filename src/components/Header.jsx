@@ -196,7 +196,7 @@ function Header() {
         search: query,
       }
       const res = await getMovies(params, moviesController);
-      setSearchResults(res.data.metadata);
+      setSearchResults(res.data.metadata.movies);
     } catch (error) {
       console.error('Search error:', error);
     } finally {
@@ -380,10 +380,19 @@ function Header() {
                           className="flex items-center p-3 hover:bg-gray-100 transition-colors gap-3"
                           onClick={() => setSearchBar(false)}
                         >
-                          <img 
+                          {/* <img 
                             src={movie.movie_image_url || "/images/avatar-2-movie.jpg"} 
                             alt={movie.movie_title}
                             className="w-10 h-14 object-cover rounded" 
+                          /> */}
+                          <Image
+                            src={movie.movie_image_url || "/images/avatar-2-movie.jpg"}
+                            alt={movie.movie_title}
+                            width={40}
+                            height={56}
+                            className="w-10 h-14 object-cover rounded"
+                            unoptimized={movie.movie_image_url?.startsWith('http') ? false : undefined}
+                            // You can remove `unoptimized` if all images are from your domain or handled by Next.js
                           />
                           <div>
                             <p className="font-medium text-sm">{movie.movie_title}</p>

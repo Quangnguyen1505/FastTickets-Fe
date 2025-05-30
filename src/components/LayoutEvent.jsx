@@ -17,7 +17,7 @@ export default function MainLayout({ children }) {
     const fetchAllMovies = async () => {
       try {
         const response = await getMovies({ limit: 3, movieStatus: "now-showing" }, controller);
-        setPhimDangChieuList(response.data.metadata || []);
+        setPhimDangChieuList(response.data.metadata.movies || []);
       } catch (error) {
         console.error("err fetch movies:", error);
       }

@@ -10,6 +10,7 @@ import { getCheckout } from "@/utils/https/booking";
 import { checkStatusPayment, genUrlPaymentMomo } from "@/utils/https/payment";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { getAllVouchersByUserId } from "@/utils/https/voucher";
+import Image from "next/image";
 
 export default function CheckoutReviews() {
   const router = useRouter();
@@ -109,10 +110,19 @@ export default function CheckoutReviews() {
                     <div className="md:flex">
                     {/* Ảnh phim */}
                     <div className="md:w-1/3 w-full bg-gray-100 p-4 flex items-center justify-center">
-                        <img
+                        {/* <img
                         src={checkouts.showtime?.movie.image_url}
                         alt={checkouts.showtime?.movie.movie_title || "Movie Title"}
                         className="rounded-xl shadow-md w-full h-auto object-cover"
+                        /> */}
+                        <Image
+                            src={checkouts.showtime?.movie.image_url}
+                            alt={checkouts.showtime?.movie.movie_title || "Movie Title"}
+                            width={300}
+                            height={450}
+                            className="rounded-xl shadow-md w-full h-auto object-cover"
+                            unoptimized={checkouts.showtime?.movie.image_url?.startsWith('http') ? false : undefined}
+                            // You may need to configure next.config.js for external domains
                         />
                     </div>
 

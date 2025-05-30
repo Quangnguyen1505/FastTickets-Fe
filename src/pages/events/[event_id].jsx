@@ -3,6 +3,7 @@ import { getEventById } from "@/utils/https/events";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import Image from "next/image";
 
 export default function EventDetail() {
   const controller = useMemo(() => new AbortController(), []);
@@ -42,10 +43,19 @@ export default function EventDetail() {
 
         {event.EventImageUrl && (
             <div className="flex justify-center mb-6">
-                <img
+                {/* <img
                 src={event.EventImageUrl}
                 alt={event.EventName}
                 className="max-w-3xl w-1/2 h-auto rounded-md shadow"
+                /> */}
+                <Image
+                  src={event.EventImageUrl}
+                  alt={event.EventName}
+                  width={600}
+                  height={400}
+                  className="max-w-3xl w-1/2 h-auto rounded-md shadow"
+                  unoptimized={event.EventImageUrl?.startsWith('http') ? false : undefined}
+                  // You may need to configure next.config.js for external domains
                 />
             </div>
         )}

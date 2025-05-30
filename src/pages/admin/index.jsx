@@ -1,7 +1,6 @@
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Layout from "@/components/Layout";
-import { getGenre } from "@/utils/https/getGenre";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import placeholder from "@/Assets/profile/poster.png";
@@ -68,16 +67,6 @@ function CreateSchedule() {
       return URL.createObjectURL(image);
     }
     return placeholder;
-  };
-
-  const fetching = async () => {
-    try {
-      const result = await getGenre(controller);
-      console.log(result);
-      setDataCategory(result.data.data);
-    } catch (error) {
-      console.log(error);
-    }
   };
 
   const handleSetCategory = (info) => {

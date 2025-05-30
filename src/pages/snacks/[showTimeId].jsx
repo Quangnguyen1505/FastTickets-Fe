@@ -9,6 +9,7 @@ import { useRouter } from 'next/router';
 import { unlockSeat, updateSeatStatus } from '@/utils/https/seat';
 import toast from 'react-hot-toast';
 import { getAllSeatTypes } from '@/utils/https/seatTypes';
+import Image from 'next/image';
 
 export default function SnacksPage() {
     const router = useRouter();
@@ -182,10 +183,19 @@ export default function SnacksPage() {
               key={snack.id}
               className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition duration-300"
             >
-              <img
+              {/* <img
                 src={snack.item_image_url}
                 alt={snack.item_name}
                 className="w-full h-56 object-cover rounded-t-2xl"
+              /> */}
+              <Image
+                src={snack.item_image_url}
+                alt={snack.item_name}
+                width={400}
+                height={224}
+                className="w-full h-56 object-cover rounded-t-2xl"
+                unoptimized={snack.item_image_url?.startsWith('http') ? false : undefined}
+                // You may need to configure next.config.js for external domains
               />
               <div className="p-5">
                 <h2 className="text-xl font-semibold text-gray-800">{snack.item_name}</h2>

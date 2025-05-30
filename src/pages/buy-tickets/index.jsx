@@ -12,6 +12,7 @@ import { useRouter } from 'next/router'
 import convertToAPIDateFormat from '@/helper'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
+import Image from 'next/image'
 
 export default function ContactPage() {
   const { t } = useTranslation('common');
@@ -39,11 +40,11 @@ export default function ContactPage() {
     const fetchMovies = async () => {
       const params = { limit: 10, movieStatus: 'now-showing' }
       const res = await getMovies(params, controller)
-      setMovieOptions(res.data.metadata.map(movie => ({
+      setMovieOptions(res.data.metadata.movies.map(movie => ({
         id: movie.id,
         title: movie.movie_title
       })))
-      setMoviesValue(res.data.metadata)
+      setMoviesValue(res.data.metadata.movies)
       console.log("res : ", res.data.metadata)
     }
     fetchMovies()
@@ -180,12 +181,20 @@ export default function ContactPage() {
 
                 {/* Ảnh poster */}
                 <div className="relative group overflow-hidden">
-                    <img
+                    {/* <img
                     src={movie.movie_image_url}
                     alt={movie.movie_title}
                     className="w-full h-[400px] object-cover transition-transform duration-300 group-hover:scale-105"
+                    /> */}
+                    <Image
+                      src={movie.movie_image_url}
+                      alt={movie.movie_title}
+                      width={300}
+                      height={400}
+                      className="w-full h-[400px] object-cover transition-transform duration-300 group-hover:scale-105"
+                      unoptimized={movie.movie_image_url?.startsWith('http') ? false : undefined}
+                      // You may need to configure next.config.js for external domains
                     />
-
                     {/* Thông tin chi tiết khi hover */}
                     <div className="absolute inset-0 bg-black bg-opacity-70 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 p-4 text-sm flex flex-col justify-end space-y-2">
                     <div className="flex items-center gap-2">🎭 {movie.movie_director}</div>

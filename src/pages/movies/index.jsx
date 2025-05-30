@@ -58,7 +58,7 @@ function Movies() {
       console.log(`page : ${page}`);
       const result = await getMovies(params, moviesController);
       console.log(result);
-      setDataMovies(result.data.metadata);
+      setDataMovies(result.data.metadata.movies);
       setMeta({
         ...meta,
         limit: result.data.limit,
