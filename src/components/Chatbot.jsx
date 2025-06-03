@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { MessageSquare, X, Bot, User, Users, Send } from 'lucide-react';
+import { MessageSquare, X, Bot, User, Users, Send, AlertTriangle } from 'lucide-react';
 import { sendMessage } from '@/utils/https/chatbot';
 import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
+
+const CHAT_AI_HISTORY_KEY = 'chatbot_history';
 
 export default function ChatbotUI() {
   const [open, setOpen] = useState(false);
@@ -13,6 +15,7 @@ export default function ChatbotUI() {
     3: [],
   });
   const [input, setInput] = useState('');
+  const [showAIModal, setShowAIModal] = useState(false);
 
   const userStore = useSelector((state) => state.user.data);
   const token = userStore.tokens?.accessToken;
@@ -41,7 +44,7 @@ export default function ChatbotUI() {
         messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
       }
     }
-  }, [selectedMode]);  
+  }, [selectedMode]);
 
   const websocketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
 
@@ -137,7 +140,7 @@ export default function ChatbotUI() {
             ...prev,
             2: [
               ...prev[2].filter(m => !m.typing),
-              { from: 'staff', text: msg.message, timestamp: new Date(msg.sent_at).getTime() }
+              { from: 'staff', text: msg.message, timestamp: new Date(msg.sent_at).getTime(), isHtml: false }
             ]
           }));
         };
@@ -159,7 +162,12 @@ export default function ChatbotUI() {
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    const userMessage = { from: 'user', text: input.trim(), timestamp: Date.now() };
+    const userMessage = { 
+      from: 'user', 
+      text: input.trim(), 
+      timestamp: Date.now(),
+      isHtml: false
+    };
     setMessagesMap(prev => ({
       ...prev,
       [selectedMode]: [...(prev[selectedMode] || []), userMessage]
@@ -182,13 +190,22 @@ export default function ChatbotUI() {
 
     try {
       if (selectedMode === 1) {
-        const res = await sendMessage(input.trim());
-        const aiReply = res.data?.response || 'Xin lỗi, tôi không hiểu câu hỏi của bạn.';
+        const res = await sendMessage(input.trim(), userId);
+        console.log('res', res);
+        const rawResponse = res.data?.response;
+        let aiReply = '';
+        let isHtml = false;
+        if (typeof rawResponse === 'object' && rawResponse !== null && rawResponse.html) {
+          aiReply = rawResponse.html;
+          isHtml = true;
+        } else if (typeof rawResponse === 'string') {
+          aiReply = rawResponse;
+        }
         setMessagesMap(prev => ({
           ...prev,
           1: [
             ...prev[1].filter(msg => !msg.typing),
-            { from: 'ai', text: aiReply }
+            { from: 'ai', text: aiReply, timestamp: Date.now(), isHtml }
           ]
         }));        
       } else if (selectedMode === 2 && socketRef.current) {
@@ -219,6 +236,32 @@ export default function ChatbotUI() {
       }));
     }
   };
+
+  //localstorage
+  useEffect(() => {
+    const savedHistory = localStorage.getItem(CHAT_AI_HISTORY_KEY);
+    if (savedHistory) {
+      try {
+        const parsedHistory = JSON.parse(savedHistory);
+        setMessagesMap(prev => ({
+          ...prev,
+          1: parsedHistory
+        }));
+      } catch (error) {
+        console.error('Error parsing AI chat history:', error);
+        localStorage.removeItem(CHAT_AI_HISTORY_KEY);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    // Chỉ lưu khi có tin nhắn và không phải tin nhắn "typing"
+    const aiMessages = messagesMap[1].filter(msg => !msg.typing);
+    
+    if (aiMessages.length > 0) {
+      localStorage.setItem(CHAT_AI_HISTORY_KEY, JSON.stringify(aiMessages));
+    }
+  }, [messagesMap[1]]); // Chỉ chạy khi messagesMap[1] thay đổi
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -282,7 +325,13 @@ export default function ChatbotUI() {
                 {chatOptions.map((option) => (
                   <button
                     key={option.id}
-                    onClick={() => setSelectedMode(option.id)}
+                    onClick={() => {
+                      if (option.id === 1) {
+                        setShowAIModal(true); // hiện modal cảnh báo
+                      } else {
+                        setSelectedMode(option.id);
+                      }
+                    }}
                     className={`w-full p-4 rounded-xl text-left transition-all ${
                       selectedMode === option.id 
                         ? 'bg-orange-500 text-white shadow-lg'
@@ -326,7 +375,12 @@ export default function ChatbotUI() {
                       <TypingIndicator />
                     ) : (
                       <>
-                        <div>{msg.text}</div>
+                        {/* <div>{msg.text}</div> */}
+                        {msg.isHtml ? (
+                          <div dangerouslySetInnerHTML={{ __html: msg.text }} />
+                        ) : (
+                          <div>{msg.text}</div>
+                        )}
                         {msg.timestamp && (
                           <div className="text-xs text-gray-400 mt-1">
                             {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -368,6 +422,48 @@ export default function ChatbotUI() {
               </p>
             </div>
           )}
+        </div>
+      )}
+
+      {showAIModal && (
+        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
+          <div className="bg-white rounded-xl p-6 shadow-xl w-[90%] max-w-md">
+            <div className="flex items-center mb-3">
+              <AlertTriangle className="w-5 h-5 text-red-500 mr-2" />
+              <h2 className="text-lg font-semibold text-orange-600">
+                Lưu ý khi sử dụng Chatbot AI
+              </h2>
+            </div>
+            <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+              Trợ lý ảo AI là công cụ hỗ trợ tự động, có thể không hoàn toàn chính xác hoặc phù hợp trong mọi tình huống.
+              <br /><br />
+              <strong className="text-gray-800">Hướng dẫn sử dụng:</strong><br />
+              1. <strong>Hỏi tư vấn:</strong> Hỏi các câu như “Phim hành động nào đang chiếu hôm nay?”, hoặc “Hãy mô tả phim XYZ?”.<br />
+              2. <strong>Đặt hàng qua chatbot:</strong><br />
+              - Vui lòng hỏi tư vấn về các bộ phim, lịch chiếu, ghế ngồi trước khi sử dụng chức năng đặt hàng.<br />
+              - Khi đặt hàng, bạn cần cung cấp thông tin rõ ràng về số lượng và loại sản phẩm bạn muốn mua.<br />
+              <span className="italic text-gray-700">
+                Ví dụ: &quot;Tôi muốn đặt 1 vé xem phim Thành Phố Không Màu chiếu 20:00 ngày 15/11 ở ghế A12 và ghế thường&quot;.
+              </span>
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowAIModal(false)}
+                className="text-sm px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-100"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedMode(1);
+                  setShowAIModal(false);
+                }}
+                className="text-sm px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+              >
+                Tiếp tục
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

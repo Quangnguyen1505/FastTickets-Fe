@@ -235,11 +235,11 @@ function Profile() {
                     {userStore.points} <span className="text-xs">points</span>
                   </p>
                 </div>
-                <p className="mt-8">300 points become a master</p>
+                <p className="mt-8">180 points become a master</p>
                 <progress
                   className="progress progress-primary w-56"
-                  value="0"
-                  max="100"
+                  value={userStore.points}
+                  max="180"
                 ></progress>
               </div>
             </div>

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useDispatch } from 'react-redux';
+import { FiArrowRight } from "react-icons/fi";
 
 
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -308,12 +309,14 @@ function Home({ movies, events, error }) {
               ))}
             </div>
 
-            <div className="col-span-3 flex justify-center mt-1">
+             <div className="col-span-3 flex justify-center mt-1">
               <button 
-              className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition"
-              onClick={() => handleNavigate("/events")}
+                className="px-6 py-3 rounded-lg border border-orange-500 text-orange-500 bg-white 
+                          hover:bg-orange-500 hover:text-white transition font-medium flex items-center gap-2"
+                onClick={() => handleNavigate("/events")}
               >
                 {t("title_event_more_button")}
+                <FiArrowRight size={18} />
               </button>
             </div>
           </div>

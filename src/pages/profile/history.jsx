@@ -87,14 +87,14 @@ function History() {
               <div className="w-[80%] md:w-[45%] lg:w-full bg-gradient-to-r from-primary to-primary/80 bg-gradient-to-right-top px-4 py-6 rounded-lg text-white">
                 <p>Moviegoers</p>
                 <p className="text-2xl mt-5">
-                  320 <span className="text-xs">points</span>
+                  {userStore.points} <span className="text-xs">points</span>
                 </p>
               </div>
               <p className="mt-8">180 points become a master</p>
               <progress
                 className="progress progress-primary w-56"
-                value="40"
-                max="100"
+                value={userStore.points}
+                max="180"
               ></progress>
             </div>
           </div>

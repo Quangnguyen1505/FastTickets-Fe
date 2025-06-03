@@ -63,6 +63,19 @@ function Voucher() {
     }
   };
 
+  const groupedVouchers = voucherUser.reduce((acc, voucher) => {
+    const code = voucher.discount_code;
+    if (!acc[code]) {
+      acc[code] = { ...voucher, quantity: 1 };
+    } else {
+      acc[code].quantity += 1;
+    }
+    return acc;
+  }, {});
+
+  const groupedVoucherList = Object.values(groupedVouchers);
+
+
   return (
     <Layout title={"Voucher Wallet"}>
       <Header />
@@ -104,14 +117,14 @@ function Voucher() {
               <div className="w-[80%] md:w-[45%] lg:w-full bg-gradient-to-r from-primary to-primary/80 px-4 py-6 rounded-lg text-white">
                 <p>Moviegoers</p>
                 <p className="text-2xl mt-5">
-                  320 <span className="text-xs">points</span>
+                  {userStore.points} <span className="text-xs">points</span>
                 </p>
               </div>
               <p className="mt-8">180 points become a master</p>
               <progress
                 className="progress progress-primary w-56"
-                value="40"
-                max="100"
+                value={userStore.points}
+                max="180"
               ></progress>
             </div>
           </div>
@@ -139,9 +152,9 @@ function Voucher() {
               </p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                {voucherUser.map((voucher) => (
+                {groupedVoucherList.map((voucher) => (
                   <div
-                    key={voucher.id}
+                    key={voucher.discount_code}
                     className="border rounded-xl p-6 shadow-sm bg-gradient-to-r from-white to-slate-50"
                   >
                     <h3 className="text-lg font-semibold text-primary mb-1">
@@ -153,6 +166,9 @@ function Voucher() {
                     <div className="flex items-center justify-between mt-4">
                       <span className="font-mono text-sm bg-slate-100 px-2 py-1 rounded border border-slate-300">
                         {voucher.discount_code}
+                        {voucher.quantity > 1 && (
+                          <span className="ml-1 text-xs text-gray-500">x{voucher.quantity}</span>
+                        )}
                       </span>
                       <span className="text-xs text-gray-400">
                         HSD: {new Date(voucher.discount_end_date).toLocaleDateString("vi-VN")}
@@ -167,7 +183,7 @@ function Voucher() {
             <hr className="border-t border-gray-300 my-8" />
 
             {/* Shop Vouchers */}
-            <h2 className="text-xl font-semibold mb-4">Voucher từ cửa hàng</h2>
+            <h2 className="text-xl font-semibold mb-4">Voucher miễn phí từ cửa hàng</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {voucherShop.map((voucher) => (
                 <div

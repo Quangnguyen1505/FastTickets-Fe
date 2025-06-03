@@ -68,6 +68,7 @@ function Movies() {
       });
       setLoading(false);
     } catch (error) {
+      setLoading(false);
       // console.log(error);
     }
   };
@@ -81,6 +82,7 @@ function Movies() {
 
   useEffect(() => {
     if (!router.isReady) return;
+    setLoading(true);
     fetching(page, search, sort);
   }, [sort, page, search, router.isReady, movieStatus]);
 
@@ -212,24 +214,50 @@ function Movies() {
           </div>
           <div className="container mx-auto p-5 ">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {dataMovies.map((movie, index) => (
-                <div 
-                  key={index} 
-                  className="flex flex-col items-center cursor-pointer"
-                  onClick={() => {
-                    addMovie(movie.id, movie.movie_title);
-                  }}
-                >
-                  <div className="relative group rounded-lg overflow-hidden shadow-lg w-full">
-                    <Image src={movie.movie_image_url || "/images/avatar-2-movie.jpg"} alt={movie.movie_title} width={300} height={400} className="w-full h-80 object-cover" />
-                    <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="bg-red-500 text-white px-4 py-2 rounded mb-2">Mua Vé</button>
-                      <button className="bg-blue-500 text-white px-4 py-2 rounded">Xem Trailer</button>
-                    </div>
+              {isLoading ? (
+                Array(8).fill(0).map((_, idx) => (
+                  <div key={idx} className="flex flex-col items-center bg-white">
+                    <Skeleton height={320} width={"100%"} />
+                    <Skeleton height={24} width={"80%"} className="mt-2" />
                   </div>
-                  <h3 className="mt-2 text-lg font-semibold text-center">{movie.movie_title}</h3>
-                </div>
-              ))}
+                ))
+              ) : (
+dataMovies.map((movie, index) => (
+  <div 
+    key={index} 
+    className="flex flex-col items-center cursor-pointer"
+    onClick={() => addMovie(movie.id, movie.movie_title)}
+  >
+    <div className="relative group rounded-xl overflow-hidden shadow-md w-full h-[450px]">
+      <Image 
+        src={movie.movie_image_url || "/images/avatar-2-movie.jpg"} 
+        alt={movie.movie_title} 
+        width={300} 
+        height={450} 
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+      />
+      
+      {/* Overlay hover */}
+      <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button className="flex items-center gap-2 bg-[#f97316] hover:bg-[#fb923c] text-white px-4 py-2 rounded shadow">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 16h8M8 12h8m-6-4h6M4 6h16v12H4z" />
+          </svg>
+          Mua vé
+        </button>
+        <button className="flex items-center gap-2 border border-white text-white px-4 py-2 rounded shadow hover:bg-white hover:text-black transition">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M6.5 5.5v9l7-4.5-7-4.5z" />
+          </svg>
+          Trailer
+        </button>
+      </div>
+    </div>
+
+    <h3 className="mt-2 text-lg font-semibold text-center">{movie.movie_title}</h3>
+  </div>
+))
+              )}
             </div>
           </div>
         </main>
