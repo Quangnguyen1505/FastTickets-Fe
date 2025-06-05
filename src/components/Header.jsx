@@ -447,7 +447,7 @@ function Header() {
                   }`}
                 >
                   <div className="p-4 border-b border-gray-200">
-                    <h3 className="font-semibold text-lg">Thông báo</h3>
+                    <h3 className="font-semibold text-lg">{t('notification')}</h3>
                   </div>
                   
                   <div className="max-h-96 overflow-y-auto">
@@ -469,7 +469,7 @@ function Header() {
                       ))
                     ) : (
                       <div className="p-4 text-center text-gray-500">
-                        Không có thông báo mới
+                        {t('notification_empty')}
                       </div>
                     )}
                   </div>
@@ -517,7 +517,7 @@ function Header() {
                         tabIndex="-1"
                         id="menu-item-0"
                       >
-                        Profile
+                        {t('profile')}
                       </Link>
                       {user.data.role_id === "2" && (
                         <Link
@@ -543,7 +543,7 @@ function Header() {
                           setLogout(true);
                         }}
                       >
-                        Logout
+                        {t('logout')}
                       </button>
                       {/* </form> */}
                     </div>

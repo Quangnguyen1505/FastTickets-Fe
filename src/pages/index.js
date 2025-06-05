@@ -269,58 +269,63 @@ function Home({ movies, events, error }) {
             May
           </button>
         </div>
-        <div className="max-w-6xl mx-auto p-4">
-          <div className="grid md:grid-cols-3 gap-4">
-            {/* Hiển thị featured event đầu tiên */}
-            {events && events.length > 0 && (
-              <div className="md:col-span-2 cursor-pointer" onClick={() => router.push(`/events/${events[0].ID }`)}>
-                <Image
-                  src={events[0].EventImageUrl}
-                  alt={events[0].EventName}
-                  width={730}
-                  height={450}
-                  className="rounded-lg h-[400px] object-cover"
-                />
-                <h2 className="mt-4 text-xl font-bold">{events[0].EventName}</h2>
-                <p className="text-sm text-gray-600 line-clamp-3">{events[0].EventDescription}</p>
-              </div>
-            )}
+      <div className="max-w-6xl mx-auto p-4">
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    {/* Featured event - full width on mobile, 2 cols on tablet+ */}
+    {events && events.length > 0 && (
+      <div 
+        className="md:col-span-2 cursor-pointer" 
+        onClick={() => router.push(`/events/${events[0].ID}`)}
+      >
+        <Image
+          src={events[0].EventImageUrl}
+          alt={events[0].EventName}
+          width={730}
+          height={450}
+          className="rounded-lg w-full h-[200px] md:h-[400px] object-cover"
+        />
+        <h2 className="mt-4 text-xl font-bold">{events[0].EventName}</h2>
+        <p className="text-sm text-gray-600 line-clamp-3">{events[0].EventDescription}</p>
+      </div>
+    )}
 
-            {/* Danh sách các event còn lại */}
-            <div className="space-y-4">
-              {events && events.slice(1).map((event, index) => (
-                <div 
-                key={index} 
-                className="flex space-x-2 h-[140px] cursor-pointer border-b pb-2"
-                onClick={() => router.push(`/events/${event.ID  }`)}
-                >
-                  <Image
-                    src={event.EventImageUrl}
-                    alt={event.EventName}
-                    width={120}
-                    height={120}
-                    className="rounded h-[120px] w-[120px] object-cover flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold line-clamp-2">{event.EventName}</h3>
-                    <p className="text-xs text-gray-600 line-clamp-3">{event.EventDescription}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-             <div className="col-span-3 flex justify-center mt-1">
-              <button 
-                className="px-6 py-3 rounded-lg border border-orange-500 text-orange-500 bg-white 
-                          hover:bg-orange-500 hover:text-white transition font-medium flex items-center gap-2"
-                onClick={() => handleNavigate("/events")}
-              >
-                {t("title_event_more_button")}
-                <FiArrowRight size={18} />
-              </button>
-            </div>
+    {/* Event list - vertical on mobile, side column on tablet+ */}
+    <div className="space-y-4">
+      {events && events.slice(1).map((event, index) => (
+        <div 
+          key={index} 
+          className="flex flex-col sm:flex-row sm:space-x-2 h-auto sm:h-[140px] cursor-pointer border-b pb-4 sm:pb-2"
+          onClick={() => router.push(`/events/${event.ID}`)}
+        >
+          <Image
+            src={event.EventImageUrl}
+            alt={event.EventName}
+            width={120}
+            height={120}
+            className="rounded object-cover w-full h-48 sm:h-[120px] sm:w-[120px] flex-shrink-0"
+          />
+          <div className="flex-1 min-w-0 mt-2 sm:mt-0">
+            <h3 className="text-sm font-semibold line-clamp-2">{event.EventName}</h3>
+            <p className="text-xs text-gray-600 line-clamp-2 sm:line-clamp-3">{event.EventDescription}</p>
           </div>
         </div>
+      ))}
+    </div>
+
+    {/* Button - full width on mobile, auto width on tablet+ */}
+    <div className="col-span-1 md:col-span-3 flex justify-center mt-1">
+      <button 
+        className="px-6 py-3 rounded-lg border border-orange-500 text-orange-500 bg-white 
+                  hover:bg-orange-500 hover:text-white transition font-medium flex items-center gap-2
+                  w-full sm:w-auto justify-center"
+        onClick={() => handleNavigate("/events")}
+      >
+        {t("title_event_more_button")}
+        <FiArrowRight size={18} />
+      </button>
+    </div>
+  </div>
+</div>
       </main>
       <Footer />
       <ChatbotUI />

@@ -23,6 +23,7 @@ import { getShowTimeByMovieId } from '@/utils/https/showtimes';
 import { getAvailableDates } from '@/utils/https/dates';
 import { useSelector } from 'react-redux';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import ChatbotUI from '@/components/Chatbot';
 
 function ListDate({ date, isClick, isActive }) {
   const d = new Date(date);
@@ -360,6 +361,7 @@ function MovieDetails() {
         )}
       </main>
       <Footer />
+      <ChatbotUI />
     </Layout>
   );
 }

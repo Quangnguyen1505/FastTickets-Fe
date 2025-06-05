@@ -3,6 +3,7 @@ import { MessageSquare, X, Bot, User, Users, Send, AlertTriangle } from 'lucide-
 import { sendMessage } from '@/utils/https/chatbot';
 import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
+import { useRouter } from 'next/router';
 
 const CHAT_AI_HISTORY_KEY = 'chatbot_history';
 
@@ -26,6 +27,8 @@ export default function ChatbotUI() {
 
   const messagesEndRef = useRef(null);
 
+  const router = useRouter();
+
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -36,6 +39,11 @@ export default function ChatbotUI() {
 
   useEffect(() => {
     if (selectedMode !== null) {
+      if(!token || !userId) {
+        toast.error("Bạn cần đăng nhập để sử dụng tính năng chat");
+        router.push('/login');
+        return;
+      }
       if (inputRef.current) {
         inputRef.current.focus();
       }
@@ -270,11 +278,18 @@ export default function ChatbotUI() {
           setOpen(!open);
           setSelectedMode(null);
         }}
-        className={`bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-full shadow-xl transition-all duration-300 ${
+        className={`relative bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-full shadow-xl transition-all duration-300 ${
           open ? 'rotate-45 scale-0' : 'rotate-0 scale-100'
         }`}
       >
-        {open ? <X size={24} /> : <MessageSquare size={24} />}
+        {/* Vòng tròn bao quanh */}
+        {!open && (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <span className="h-full w-full rounded-full bg-orange-400 opacity-75 animate-ping"></span>
+          </span>
+        )}
+        {/* Icon chính */}
+        <MessageSquare size={24} className="relative z-10" />
       </button>
 
       {open && (

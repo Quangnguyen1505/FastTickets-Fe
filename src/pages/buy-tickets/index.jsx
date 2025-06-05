@@ -13,6 +13,7 @@ import convertToAPIDateFormat from '@/helper'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
 import Image from 'next/image'
+import ChatbotUI from '@/components/Chatbot'
 
 export default function ContactPage() {
   const { t } = useTranslation('common');
@@ -238,6 +239,7 @@ export default function ContactPage() {
         </div>
       </main>
       <Footer />
+      <ChatbotUI />
     </Layout>
   )
 }

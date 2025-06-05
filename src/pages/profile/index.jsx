@@ -14,6 +14,7 @@ import { usersAction } from "@/redux/slice/users";
 import { editPassword } from "@/utils/https/user";
 import { editProfile } from "@/utils/https/user";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import ChatbotUI from "@/components/Chatbot";
 
 function Profile() {
   const dispatch = useDispatch();
@@ -440,6 +441,7 @@ function Profile() {
           </section>
         </main>
         <Footer />
+        <ChatbotUI />
       </Layout>
     </PrivateRouteNotLogin>
   );

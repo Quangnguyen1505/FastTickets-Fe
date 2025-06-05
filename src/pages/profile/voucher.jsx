@@ -10,6 +10,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useEffect, useState } from "react";
 import { claimVoucher, getAllVouchers, getAllVouchersByUserId } from "@/utils/https/voucher";
 import { handleClientScriptLoad } from "next/script";
+import ChatbotUI from "@/components/Chatbot";
 
 function Voucher() {
   const userStore = useSelector((state) => state.user.data);
@@ -219,6 +220,7 @@ function Voucher() {
         </section>
       </main>
       <Footer />
+      <ChatbotUI />
     </Layout>
   );
 }

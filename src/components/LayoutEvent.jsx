@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import Layout from "./Layout";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
+import ChatbotUI from "./Chatbot";
 
 export default function MainLayout({ children }) {
   const { t } = useTranslation('common');
@@ -77,6 +78,7 @@ export default function MainLayout({ children }) {
         </div>
       </main>
       <Footer />
+      <ChatbotUI />
     </Layout>
   );
 }

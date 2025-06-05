@@ -12,6 +12,7 @@ import { getBookingHistory } from "@/utils/https/booking";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import QRCodeGenerator from "@/utils/qrCode";
+import ChatbotUI from "@/components/Chatbot";
 
 function History() {
   const router = useRouter();
@@ -180,6 +181,7 @@ function History() {
         </section>
       </main>
       <Footer />
+      <ChatbotUI />
     </Layout>
   );
 }

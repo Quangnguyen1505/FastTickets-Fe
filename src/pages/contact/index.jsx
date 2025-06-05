@@ -9,6 +9,7 @@ import { createContactMessage } from '@/utils/https/contact'
 import toast from 'react-hot-toast'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
+import ChatbotUI from '@/components/Chatbot'
 
 export default function ContactPage() {
   const { t } = useTranslation('common')
@@ -173,6 +174,7 @@ export default function ContactPage() {
         </div>
       </main>
       <Footer />
+      <ChatbotUI />
     </Layout>
   )
 }

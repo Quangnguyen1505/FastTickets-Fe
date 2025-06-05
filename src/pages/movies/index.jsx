@@ -20,6 +20,7 @@ import {
 } from '@/utils/https/movies';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
+import ChatbotUI from '@/components/Chatbot';
 
 function Movies() {
   const { t } = useTranslation('common');
@@ -222,46 +223,54 @@ function Movies() {
                   </div>
                 ))
               ) : (
-dataMovies.map((movie, index) => (
-  <div 
-    key={index} 
-    className="flex flex-col items-center cursor-pointer"
-    onClick={() => addMovie(movie.id, movie.movie_title)}
-  >
-    <div className="relative group rounded-xl overflow-hidden shadow-md w-full h-[450px]">
-      <Image 
-        src={movie.movie_image_url || "/images/avatar-2-movie.jpg"} 
-        alt={movie.movie_title} 
-        width={300} 
-        height={450} 
-        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-      />
-      
-      {/* Overlay hover */}
-      <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button className="flex items-center gap-2 bg-[#f97316] hover:bg-[#fb923c] text-white px-4 py-2 rounded shadow">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 16h8M8 12h8m-6-4h6M4 6h16v12H4z" />
-          </svg>
-          Mua vé
-        </button>
-        <button className="flex items-center gap-2 border border-white text-white px-4 py-2 rounded shadow hover:bg-white hover:text-black transition">
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M6.5 5.5v9l7-4.5-7-4.5z" />
-          </svg>
-          Trailer
-        </button>
-      </div>
-    </div>
+                dataMovies.map((movie, index) => {
+                  const isLastOdd =
+                    dataMovies.length % 2 === 1 && index === dataMovies.length - 1;
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className={`flex flex-col items-center cursor-pointer ${
+                        isLastOdd ? 'col-span-2 md:col-span-1' : ''
+                      }`}
+                      onClick={() => addMovie(movie.id, movie.movie_title)}
+                    >
+                      <div className="relative group rounded-xl overflow-hidden shadow-md w-full h-[450px]">
+                        <Image 
+                          src={movie.movie_image_url || "/images/avatar-2-movie.jpg"} 
+                          alt={movie.movie_title} 
+                          width={300} 
+                          height={450} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                        />
+                        
+                        {/* Overlay hover */}
+                        <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button className="flex items-center gap-2 bg-[#f97316] hover:bg-[#fb923c] text-white px-4 py-2 rounded shadow">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M8 16h8M8 12h8m-6-4h6M4 6h16v12H4z" />
+                            </svg>
+                            {t("buy_ticket_index")}
+                          </button>
+                          <button className="flex items-center gap-2 border border-white text-white px-4 py-2 rounded shadow hover:bg-white hover:text-black transition">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M6.5 5.5v9l7-4.5-7-4.5z" />
+                            </svg>
+                            Trailer
+                          </button>
+                        </div>
+                      </div>
 
-    <h3 className="mt-2 text-lg font-semibold text-center">{movie.movie_title}</h3>
-  </div>
-))
+                      <h3 className="mt-2 text-lg font-semibold text-center">{movie.movie_title}</h3>
+                    </div>
+                  )}
+                )
               )}
             </div>
           </div>
         </main>
         <Footer />
+        <ChatbotUI />
       </Layout>
     </>
   );

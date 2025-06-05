@@ -11,6 +11,7 @@ import { checkStatusPayment, genUrlPaymentMomo } from "@/utils/https/payment";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { getAllVouchersByUserId } from "@/utils/https/voucher";
 import Image from "next/image";
+import ChatbotUI from "@/components/Chatbot";
 
 export default function CheckoutReviews() {
   const router = useRouter();
@@ -269,6 +270,7 @@ export default function CheckoutReviews() {
             </div>
         </main>
         <Footer />
+        <ChatbotUI />
     </Layout>
     </>
   );
