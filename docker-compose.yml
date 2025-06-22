@@ -1,0 +1,15 @@
+services:
+  next-app:
+    container_name: next-app
+    image: <image-will-be-replaced-in-CI>
+    ports:
+      - "3000:3000"
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true

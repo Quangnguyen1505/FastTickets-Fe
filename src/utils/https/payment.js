@@ -29,3 +29,28 @@ export const checkStatusPayment = async (orderId, controller) => {
     return axios.post(url, data, 
         { signal: controller.signal });
 };
+
+export const callPaymentVNPayUpdate = async (data, controller) => {
+    const url = `${baseUrl}/v1/api/payment/vnpay/update`;
+    return axios.post(url, data, 
+        { signal: controller.signal });
+}
+
+export const genUrlPaymentVNPay = (userId, accessToken, show_time_id, user_order_book, snacks_order, controller, discount_id = null) => {
+    const body = {
+        show_time_id,
+        user_order_book,
+        snacks_order,
+        discount_id
+    }
+    const url = `${baseUrl}/v1/api/payment/vnpay`;
+    return axios.post(url, body, 
+        { 
+            signal: controller.signal,
+            headers: { 
+                authorization: `Bearer ${accessToken}`,
+                "x-client-id": userId,
+            },
+        }
+    );
+}

@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
 import { getCheckout } from "@/utils/https/booking";
-import { checkStatusPayment, genUrlPaymentMomo } from "@/utils/https/payment";
+import { checkStatusPayment, genUrlPaymentMomo, genUrlPaymentVNPay } from "@/utils/https/payment";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { getAllVouchersByUserId } from "@/utils/https/voucher";
 import Image from "next/image";
@@ -93,6 +93,19 @@ export default function CheckoutReviews() {
                 selectedVoucher?.id ?? null
             );
             const url = res.data.metadata.payUrl;
+            console.log("paymentMethod ", url);
+            router.push(url);
+        }else if(paymentMethod == 'vnpay') {
+            const res = await genUrlPaymentVNPay(
+                userId, 
+                accessToken, 
+                data.show_time_id, 
+                data.user_order, 
+                data.snacks_order,
+                controller,
+                selectedVoucher?.id ?? null
+            );
+            const url = res.data.metadata;
             console.log("paymentMethod ", url);
             router.push(url);
         }
@@ -235,7 +248,7 @@ export default function CheckoutReviews() {
                                 <button
                                 onClick={() => setPaymentMethod("atm")}
                                 className={`px-4 py-2 rounded-lg border ${
-                                    paymentMethod === "atm"
+                                    paymentMethod === "vnpay"
                                     ? "bg-green-500 text-white border-green-500"
                                     : "bg-white text-gray-700 border-gray-300"
                                 }`}

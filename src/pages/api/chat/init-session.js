@@ -10,9 +10,11 @@ export default async function handler(req, res) {
   const backendRes = await fetch(`${baseUrl}/v1/2024/chat-with-employee/init-session`, {
     method: 'POST',
     headers: {
+      'Content-Type': 'application/json',
       'x-client-id': userId,
       'authorization': `Bearer ${token}`,
-    }
+    },
+    body: JSON.stringify(req.body),
   });
 
   console.log('Backend response:', backendRes);

@@ -170,7 +170,7 @@ function History() {
 
                     {isQRVisible && (
                       <div className="px-8 pb-6 flex justify-center">
-                        <QRCodeGenerator data={`https://example.com/ticket/${booking.id}`} />
+                        <QRCodeGenerator data={`${process.env.NEXT_PUBLIC_APP_URL}/bookings?bookingId=${booking.id}`} />
                       </div>
                     )}
                   </div>

@@ -31,3 +31,13 @@ export const getBookingHistory = (userId, accessToken, params, controller) => {
         signal: controller.signal,
     });
 }
+
+export const updateBookingStatus = (bookingId, accessToken, userId) => {
+    const url = `${baseUrl}/v1/api/bookings/${bookingId}`;
+    return axios.put(url, {}, {
+        headers: {
+            authorization: `Bearer ${accessToken}`,
+            "x-client-id": userId
+        }
+    });
+}

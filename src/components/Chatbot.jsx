@@ -19,6 +19,7 @@ export default function ChatbotUI() {
   const [showAIModal, setShowAIModal] = useState(false);
 
   const userStore = useSelector((state) => state.user.data);
+  console.log('userStore', userStore);
   const token = userStore.tokens?.accessToken;
   const userId = userStore.shop?.id;
 
@@ -81,14 +82,18 @@ export default function ChatbotUI() {
     if (selectedMode === 2 && !socketRef.current) {
       const initOrRestoreSession = async () => {
         let storedSessionId = localStorage.getItem("chat_session_id");
-        if (!storedSessionId) {
+        if (!storedSessionId || storedSessionId === "undefined") {
           const res = await fetch('/api/chat/init-session', {
             method: 'POST',
             headers: {
+              'Content-Type': 'application/json',
               'x-client-id': userId,
               'authorization': token
             },
-            body: JSON.stringify({ userId }),
+            body: JSON.stringify({ 
+              name: userStore.first_name === "" ? "Khách hàng" : userStore.first_name, 
+              avatar_url: userStore.image || ""
+            }),
           });
 
           const data = await res.json();

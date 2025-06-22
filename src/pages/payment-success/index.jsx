@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { checkStatusPayment } from "@/utils/https/payment";
+import { callPaymentVNPayUpdate, checkStatusPayment } from "@/utils/https/payment";
 import { useRouter } from "next/router";
 import toast from "react-hot-toast";
 
@@ -36,6 +36,37 @@ export default function CheckoutSuccess() {
 
     pollStatus();
   }, [query.orderId]);
+
+  useEffect(() => {
+    const {
+      vnp_Amount,
+      vnp_BankCode,
+      vnp_BankTranNo,
+      vnp_CardType,
+      vnp_OrderInfo,
+      vnp_PayDate,
+      vnp_TxnRef,
+      vnp_SecureHash
+    } = query;
+
+    console.log("query", query);
+
+    if (!vnp_Amount || !vnp_BankCode || !vnp_BankTranNo || !vnp_CardType || !vnp_OrderInfo || !vnp_PayDate || !vnp_TxnRef || !vnp_SecureHash) {
+      return;
+    }
+    const fetchPaymentUpdate = async () => {
+      try {
+        const res = await callPaymentVNPayUpdate(query, controller);
+        console.log("res", res);
+        setStatus("Thanh toán VNPay thành công!");
+        toast.success("Thanh toán VNPay thành công, cảm ơn quý khách đã đặt vé ở cửa hàng FastTickets chúng tôi !");
+        console.log("res", res);
+      } catch (error) {
+        console.error("Error updating payment:", error);
+      }
+    };
+    fetchPaymentUpdate();
+  }, [query]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
