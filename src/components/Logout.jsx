@@ -37,6 +37,7 @@ function Logout({ isOpen, onClose, handler }) {
 
         // xóa chat_session_id khỏi localstorage
         localStorage.removeItem("chat_session_id");
+        localStorage.removeItem("chat_group_session_id");
 
         i18next.changeLanguage('vi');
         router.push("/login");

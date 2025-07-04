@@ -166,6 +166,88 @@ export default function ChatbotUI() {
       initOrRestoreSession();
     }
 
+    if (selectedMode === 3 && !socketRef.current) {
+      const initGroupOrRestoreSession = async () => {
+        let storedGroupSessionId = localStorage.getItem("chat_group_session_id");
+        if (!storedGroupSessionId || storedGroupSessionId === "undefined") {
+          const res = await fetch('/api/chat/init-session-group', {
+            method: 'POST',
+            headers: {
+              'x-client-id': userId,
+              'authorization': token
+            },
+          });
+
+          const data = await res.json();
+          storedGroupSessionId = data.data;
+          localStorage.setItem("chat_group_session_id", storedGroupSessionId);
+
+          // Join vào session group
+          await fetch('/api/chat/join-session', {
+            method: 'POST',
+            headers: {
+              'x-client-id': userId,
+              'authorization': token
+            },
+            body: JSON.stringify({
+              sessionId: storedGroupSessionId,
+              staffId: userId
+            })
+          });
+        }
+
+        setSessionId(storedGroupSessionId);
+
+        // Lấy lịch sử tin nhắn
+        const historyRes = await fetch(`/api/chat/history/${storedGroupSessionId}`, {
+          headers: {
+            'x-client-id': userId,
+            'authorization': token
+          },
+        });
+
+        const historyData = await historyRes.json();
+        setMessagesMap(prev => ({
+          ...prev,
+          3: (historyData.data || []).map(item => ({
+            from: item.sender_id === userId ? 'user' : 'other',
+            text: item.message,
+            timestamp: new Date(item.sent_at).getTime(),
+            name: item.name || "Thành viên",
+            avatar_url: item.avatar_url || "",
+          }))
+        }));
+
+        const ws = new WebSocket(`${websocketUrl}?sessionId=${storedGroupSessionId}&userId=${userId}`);
+        socketRef.current = ws;
+
+        ws.onopen = () => console.log('🟢 Group WS connected');
+        ws.onmessage = (event) => {
+          console.log('Group WS event', event);
+          const msg = JSON.parse(event.data);
+          if (msg.sender_id === userId) return;
+
+          setMessagesMap(prev => ({
+            ...prev,
+            3: [
+              ...prev[3].filter(m => !m.typing),
+              { 
+                from: 'other', 
+                text: msg.message, 
+                timestamp: new Date(msg.sent_at).getTime(),
+                name: msg.name || "Thành viên",
+                avatar_url: msg.avatar_url || "",
+                isHtml: false 
+              }
+            ]
+          }));
+        };
+      };
+
+      initGroupOrRestoreSession();
+    }
+
+
     return () => {
       socketRef.current?.close();
       socketRef.current = null;
@@ -237,7 +319,25 @@ export default function ChatbotUI() {
           },
           body: JSON.stringify(payload),
         });
+      } else if (selectedMode === 3 && socketRef.current) {
+          const payload = {
+            sender: userId,
+            avatar_url: userStore.image || "",
+            name: userStore.first_name || "Khách hàng",
+            message: input.trim(),
+            sessionId,
+          };
+
+          await fetch('/api/chat/send-message', {
+            method: 'POST',
+            headers: {
+              'x-client-id': userId,
+              'authorization': token
+            },
+            body: JSON.stringify(payload),
+          });
       }
+
     } catch (error) {
       console.error('Lỗi gọi API:', error);
       setMessagesMap(prev => ({
@@ -382,41 +482,78 @@ export default function ChatbotUI() {
               </div>
             ) : (
               <div className="flex flex-col gap-3">
-                {(messagesMap[selectedMode] || []).map((msg, idx) => (
-                  <div
-                    key={`msg-${idx}-${msg.timestamp || Date.now()}`}
-                    className={`p-2 rounded-md max-w-[80%] ${
-                      msg.from === 'user'
-                        ? 'bg-orange-100 self-end text-right'
-                        : 'bg-gray-200 self-start text-left'
-                    }`}
-                  >
-                    {msg.typing ? (
-                      <TypingIndicator />
-                    ) : (
-                      <>
-                        {/* <div>{msg.text}</div> */}
-                        {msg.isHtml ? (
-                          <div dangerouslySetInnerHTML={{ __html: msg.text }} />
-                        ) : (
-                          <div>{msg.text}</div>
-                        )}
-                        {msg.timestamp && (
-                          <div className="text-xs text-gray-400 mt-1">
-                            {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {(messagesMap[selectedMode] || []).map((msg, idx) => {
+                  // Nếu là group chat (mode 3) và tin nhắn không phải của mình
+                  if (selectedMode === 3 && msg.from === 'other') {
+                    return (
+                      <div
+                        key={`msg-${idx}-${msg.timestamp || Date.now()}`}
+                        className="flex items-start gap-2 max-w-[85%] self-start"
+                      >
+                        <img
+                          src={msg.avatar_url || '/images/profile.png'}
+                          alt={msg.name || 'Avatar'}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                        <div className="bg-gray-200 p-2 rounded-md flex-1">
+                          <div className="text-sm font-semibold text-gray-800">
+                            {msg.name || 'Thành viên'}
                           </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                ))}
+                          <div className="text-sm">
+                            {msg.isHtml ? (
+                              <div dangerouslySetInnerHTML={{ __html: msg.text }} />
+                            ) : (
+                              <div>{msg.text}</div>
+                            )}
+                          </div>
+                          {msg.timestamp && (
+                            <div className="text-xs text-gray-400 mt-1">
+                              {new Date(msg.timestamp).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Các tin nhắn khác
+                  return (
+                    <div
+                      key={`msg-${idx}-${msg.timestamp || Date.now()}`}
+                      className={`p-2 rounded-md max-w-[80%] ${
+                        msg.from === 'user'
+                          ? 'bg-orange-100 self-end text-right'
+                          : 'bg-gray-200 self-start text-left'
+                      }`}
+                    >
+                      {msg.typing ? (
+                        <TypingIndicator />
+                      ) : msg.isHtml ? (
+                        <div dangerouslySetInnerHTML={{ __html: msg.text }} />
+                      ) : (
+                        <div>{msg.text}</div>
+                      )}
+                      {msg.timestamp && (
+                        <div className="text-xs text-gray-400 mt-1">
+                          {new Date(msg.timestamp).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
                 <div ref={messagesEndRef} />
               </div>
             )}
           </div>
 
 
-          {(selectedMode === 1 || selectedMode === 2) && (
+          {(selectedMode === 1 || selectedMode === 2 || selectedMode === 3) && (
             <div className="p-3 border-t bg-white flex gap-2">
               <input
                 ref={inputRef}
