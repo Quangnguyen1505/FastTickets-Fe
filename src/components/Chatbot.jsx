@@ -4,6 +4,7 @@ import { sendMessage } from '@/utils/https/chatbot';
 import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 
 const CHAT_AI_HISTORY_KEY = 'chatbot_history';
 
@@ -490,9 +491,11 @@ export default function ChatbotUI() {
                         key={`msg-${idx}-${msg.timestamp || Date.now()}`}
                         className="flex items-start gap-2 max-w-[85%] self-start"
                       >
-                        <img
+                        <Image
                           src={msg.avatar_url || '/images/profile.png'}
                           alt={msg.name || 'Avatar'}
+                          width={32}
+                          height={32}
                           className="w-8 h-8 rounded-full object-cover"
                         />
                         <div className="bg-gray-200 p-2 rounded-md flex-1">

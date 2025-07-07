@@ -9,6 +9,7 @@ import Layout from "@/components/Layout";
 import PrivateRouteLOGIN from "@/components/PrivateRouteLogin";
 import { resetPassword } from "@/utils/https/auth";
 import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
 function ResetPassword() {
   const { t } = useTranslation('auth');
