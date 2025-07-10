@@ -243,17 +243,17 @@ export default function CheckoutReviews() {
                                     : "bg-white text-gray-700 border-gray-300"
                                 }`}
                                 >
-                                ZaloPay
+                                VNPay
                                 </button>
                                 <button
-                                onClick={() => setPaymentMethod("atm")}
+                                onClick={() => setPaymentMethod("vnpay")}
                                 className={`px-4 py-2 rounded-lg border ${
                                     paymentMethod === "vnpay"
                                     ? "bg-green-500 text-white border-green-500"
                                     : "bg-white text-gray-700 border-gray-300"
                                 }`}
                                 >
-                                Thẻ ATM
+                                VnPay
                                 </button>
                                 <button
                                 onClick={() => setPaymentMethod("credit")}
