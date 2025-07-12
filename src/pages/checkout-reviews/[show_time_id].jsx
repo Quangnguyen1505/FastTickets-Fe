@@ -243,7 +243,7 @@ export default function CheckoutReviews() {
                                     : "bg-white text-gray-700 border-gray-300"
                                 }`}
                                 >
-                                VNPay
+                                Zalo Pay
                                 </button>
                                 <button
                                 onClick={() => setPaymentMethod("vnpay")}
