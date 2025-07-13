@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { callPaymentVNPayUpdate, checkStatusPayment } from "@/utils/https/payment";
 import { useRouter } from "next/router";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 export default function CheckoutSuccess() {
   const [status, setStatus] = useState("checking...");
