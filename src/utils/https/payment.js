@@ -30,10 +30,17 @@ export const checkStatusPayment = async (orderId, controller) => {
         { signal: controller.signal });
 };
 
-export const callPaymentVNPayUpdate = async (data, controller) => {
+export const callPaymentVNPayUpdate = async (data, token, userId, controller) => {
     const url = `${baseUrl}/v1/api/payment/vnpay/update`;
     return axios.post(url, data, 
-        { signal: controller.signal });
+        { 
+            signal: controller.signal,
+            headers: { 
+                authorization: `Bearer ${token}`,
+                "x-client-id": userId,
+            },
+        }
+    );
 }
 
 export const genUrlPaymentVNPay = (userId, accessToken, show_time_id, user_order_book, snacks_order, controller, discount_id = null) => {

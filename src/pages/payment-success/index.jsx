@@ -6,6 +6,9 @@ import toast from "react-hot-toast";
 
 export default function CheckoutSuccess() {
   const [status, setStatus] = useState("checking...");
+  const userStore = useSelector((state) => state.user.data);
+  const token = userStore.tokens?.accessToken;
+  const userId = userStore.shop?.id;
   const controller = useMemo(() => new AbortController(), []);
   const router = useRouter();
   const { query } = router;
@@ -56,7 +59,7 @@ export default function CheckoutSuccess() {
     }
     const fetchPaymentUpdate = async () => {
       try {
-        const res = await callPaymentVNPayUpdate(query, controller);
+        const res = await callPaymentVNPayUpdate(query, token, userId, controller);
         console.log("res", res);
         setStatus("Thanh toán VNPay thành công!");
         toast.success("Thanh toán VNPay thành công, cảm ơn quý khách đã đặt vé ở cửa hàng FastTickets chúng tôi !");
